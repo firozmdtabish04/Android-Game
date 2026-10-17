@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/obstacle.gd" id="1_obstacle"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(1.8, 0.4, 1.8)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pothole"]
+top_radius = 0.9
+bottom_radius = 0.7
+height = 0.05
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mud"]
+albedo_color = Color(0.18, 0.12, 0.08, 1)
+roughness = 0.1
+
+[node name="Pothole" type="Area3D"]
+collision_layer = 4
+collision_mask = 1
+script = ExtResource("1_obstacle")
+obstacle_type = "pothole"
+can_jump_over = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+shape = SubResource("BoxShape3D_1")
+
+[node name="MudMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("CylinderMesh_pothole")
+surface_material_override/0 = SubResource("StandardMaterial3D_mud")

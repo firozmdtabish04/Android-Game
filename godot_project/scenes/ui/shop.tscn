@@ -1,0 +1,180 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/shop.gd" id="1_shop"]
+
+[node name="Shop" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_shop")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.08, 0.06, 0.95)
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 30.0
+offset_top = 40.0
+offset_right = -30.0
+offset_bottom = 90.0
+grow_horizontal = 2
+
+[node name="ShopTitle" type="Label" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.75, 0.1, 1)
+theme_override_font_sizes/font_size = 32
+text = "DESI AVATAR SHOP"
+
+[node name="CoinsLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 28
+text = "₹ 0"
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 110.0
+offset_right = -30.0
+offset_bottom = -100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Grid" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="BirjuCard" type="PanelContainer" parent="Scroll/Grid"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/Grid/BirjuCard"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Info" type="VBoxContainer" parent="Scroll/Grid/BirjuCard/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Name" type="Label" parent="Scroll/Grid/BirjuCard/HBox/Info"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Birju"
+
+[node name="Desc" type="Label" parent="Scroll/Grid/BirjuCard/HBox/Info"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "The Village Sprinter (Default)"
+
+[node name="StatusLabel" type="Label" parent="Scroll/Grid/BirjuCard"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(0.3, 0.9, 0.4, 1)
+text = "SELECTED"
+
+[node name="SelectButton" type="Button" parent="Scroll/Grid/BirjuCard"]
+custom_minimum_size = Vector2(100, 44)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "ACTIVE"
+
+[node name="LallanCard" type="PanelContainer" parent="Scroll/Grid"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/Grid/LallanCard"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Info" type="VBoxContainer" parent="Scroll/Grid/LallanCard/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Name" type="Label" parent="Scroll/Grid/LallanCard/HBox/Info"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Lallan"
+
+[node name="Desc" type="Label" parent="Scroll/Grid/LallanCard/HBox/Info"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "The Daring Auto Driver"
+
+[node name="StatusLabel" type="Label" parent="Scroll/Grid/LallanCard"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+text = "₹ 150"
+
+[node name="SelectButton" type="Button" parent="Scroll/Grid/LallanCard"]
+custom_minimum_size = Vector2(100, 44)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "UNLOCK"
+
+[node name="ChampaCard" type="PanelContainer" parent="Scroll/Grid"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/Grid/ChampaCard"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Info" type="VBoxContainer" parent="Scroll/Grid/ChampaCard/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Name" type="Label" parent="Scroll/Grid/ChampaCard/HBox/Info"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Champa"
+
+[node name="Desc" type="Label" parent="Scroll/Grid/ChampaCard/HBox/Info"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "The Fast Runner"
+
+[node name="StatusLabel" type="Label" parent="Scroll/Grid/ChampaCard"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+text = "₹ 300"
+
+[node name="SelectButton" type="Button" parent="Scroll/Grid/ChampaCard"]
+custom_minimum_size = Vector2(100, 44)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "UNLOCK"
+
+[node name="CloseButton" type="Button" parent="."]
+custom_minimum_size = Vector2(160, 54)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -80.0
+offset_right = 80.0
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 22
+text = "⬅ BACK"

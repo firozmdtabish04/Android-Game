@@ -1,0 +1,91 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/track_chunk.gd" id="1_chunk"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(24.0, 0.4, 30.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_grass"]
+size = Vector3(24.0, 0.2, 30.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grass"]
+albedo_color = Color(0.24, 0.45, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_road"]
+size = Vector3(8.0, 0.22, 30.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_road"]
+albedo_color = Color(0.55, 0.42, 0.32, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rail"]
+size = Vector3(24.0, 0.15, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_steel"]
+albedo_color = Color(0.3, 0.32, 0.35, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_sleeper"]
+size = Vector3(1.2, 0.1, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood"]
+albedo_color = Color(0.25, 0.18, 0.12, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_sign_post"]
+top_radius = 0.08
+bottom_radius = 0.08
+height = 2.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_sign_x"]
+size = Vector3(1.2, 0.15, 0.04)
+
+[node name="RailwayCrossingChunk" type="Node3D" node_paths=PackedStringArray("obstacle_container", "coin_container")]
+script = ExtResource("1_chunk")
+obstacle_container = NodePath("Obstacles")
+coin_container = NodePath("Coins")
+is_railway_crossing = true
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_ground")
+
+[node name="GrassFields" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+mesh = SubResource("BoxMesh_grass")
+surface_material_override/0 = SubResource("StandardMaterial3D_grass")
+
+[node name="MittiRoad" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08, 0)
+mesh = SubResource("BoxMesh_road")
+surface_material_override/0 = SubResource("StandardMaterial3D_road")
+
+[node name="Rail1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, -0.8)
+mesh = SubResource("BoxMesh_rail")
+surface_material_override/0 = SubResource("StandardMaterial3D_steel")
+
+[node name="Rail2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0.8)
+mesh = SubResource("BoxMesh_rail")
+surface_material_override/0 = SubResource("StandardMaterial3D_steel")
+
+[node name="CrossingSign" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 0, 2.0)
+
+[node name="Post" type="MeshInstance3D" parent="CrossingSign"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+mesh = SubResource("CylinderMesh_sign_post")
+
+[node name="Cross1" type="MeshInstance3D" parent="CrossingSign"]
+transform = Transform3D(0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 0, 0, 1, 0, 2.2, 0.08)
+mesh = SubResource("BoxMesh_sign_x")
+
+[node name="Cross2" type="MeshInstance3D" parent="CrossingSign"]
+transform = Transform3D(0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0, 1, 0, 2.2, 0.08)
+mesh = SubResource("BoxMesh_sign_x")
+
+[node name="Obstacles" type="Node3D" parent="."]
+
+[node name="Coins" type="Node3D" parent="."]

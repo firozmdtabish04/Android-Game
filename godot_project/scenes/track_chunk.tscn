@@ -1,0 +1,82 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/track_chunk.gd" id="1_chunk"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(24.0, 0.4, 30.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_grass"]
+size = Vector3(24.0, 0.2, 30.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grass"]
+albedo_color = Color(0.24, 0.45, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_road"]
+size = Vector3(8.0, 0.22, 30.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_road"]
+albedo_color = Color(0.55, 0.42, 0.32, 1)
+roughness = 0.9
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_trunk"]
+top_radius = 0.3
+bottom_radius = 0.4
+height = 3.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bark"]
+albedo_color = Color(0.35, 0.22, 0.12, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_foliage"]
+radius = 2.2
+height = 3.5
+
+[node name="TrackChunk" type="Node3D" node_paths=PackedStringArray("obstacle_container", "coin_container")]
+script = ExtResource("1_chunk")
+obstacle_container = NodePath("Obstacles")
+coin_container = NodePath("Coins")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_ground")
+
+[node name="GrassFields" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+mesh = SubResource("BoxMesh_grass")
+surface_material_override/0 = SubResource("StandardMaterial3D_grass")
+
+[node name="MittiRoad" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08, 0)
+mesh = SubResource("BoxMesh_road")
+surface_material_override/0 = SubResource("StandardMaterial3D_road")
+
+[node name="TreeL1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0, -8.0)
+
+[node name="Trunk" type="MeshInstance3D" parent="TreeL1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)
+mesh = SubResource("CylinderMesh_trunk")
+surface_material_override/0 = SubResource("StandardMaterial3D_bark")
+
+[node name="Foliage" type="MeshInstance3D" parent="TreeL1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.2, 0)
+mesh = SubResource("SphereMesh_foliage")
+surface_material_override/0 = SubResource("StandardMaterial3D_grass")
+
+[node name="TreeR1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, 7.0)
+
+[node name="Trunk" type="MeshInstance3D" parent="TreeR1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)
+mesh = SubResource("CylinderMesh_trunk")
+surface_material_override/0 = SubResource("StandardMaterial3D_bark")
+
+[node name="Foliage" type="MeshInstance3D" parent="TreeR1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.2, 0)
+mesh = SubResource("SphereMesh_foliage")
+surface_material_override/0 = SubResource("StandardMaterial3D_grass")
+
+[node name="Obstacles" type="Node3D" parent="."]
+
+[node name="Coins" type="Node3D" parent="."]
