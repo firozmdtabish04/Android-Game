@@ -5,9 +5,9 @@ extends Control
 @onready var close_button: Button = $CloseButton
 @onready var coins_display: Label = $TopBar/CoinsLabel
 
-# Character 1: Birju
-@onready var birju_btn: Button = $Scroll/Grid/BirjuCard/SelectButton
-@onready var birju_status: Label = $Scroll/Grid/BirjuCard/StatusLabel
+# Character 1: Tabish Firoz
+@onready var Tabish Firoz_btn: Button = $Scroll/Grid/Tabish FirozCard/SelectButton
+@onready var Tabish Firoz_status: Label = $Scroll/Grid/Tabish FirozCard/StatusLabel
 
 # Character 2: Lallan
 @onready var lallan_btn: Button = $Scroll/Grid/LallanCard/SelectButton
@@ -23,7 +23,7 @@ func _ready() -> void:
 	if close_button:
 		close_button.pressed.connect(_on_close_pressed)
 		
-	if birju_btn: birju_btn.pressed.connect(func(): _on_char_button_pressed("birju"))
+	if Tabish Firoz_btn: Tabish Firoz_btn.pressed.connect(func(): _on_char_button_pressed("Tabish Firoz"))
 	if lallan_btn: lallan_btn.pressed.connect(func(): _on_char_button_pressed("lallan"))
 	if champa_btn: champa_btn.pressed.connect(func(): _on_char_button_pressed("champa"))
 	
@@ -34,7 +34,7 @@ func refresh_shop() -> void:
 		coins_display.text = "₹ " + str(GameManager.get_total_coins())
 		
 	var selected = GameManager.get_selected_character()
-	_update_card("birju", birju_btn, birju_status, selected)
+	_update_card("Tabish Firoz", Tabish Firoz_btn, Tabish Firoz_status, selected)
 	_update_card("lallan", lallan_btn, lallan_status, selected)
 	_update_card("champa", champa_btn, champa_status, selected)
 

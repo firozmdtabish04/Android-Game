@@ -147,8 +147,8 @@ class DesiAudioManager {
 
 // ---------------- CHARACTER DEFINITIONS ----------------
 const CHARACTERS = {
-  birju: {
-    name: 'Birju',
+  Tabish Firoz: {
+    name: 'Tabish Firoz',
     tagline: 'The Village Sprinter',
     cost: 0,
     unlocked: true,
@@ -252,8 +252,8 @@ class MittiRunGame {
       const data = JSON.parse(localStorage.getItem('mitti_run_save') || '{}');
       this.highScore = data.highScore || 0;
       this.totalCoins = data.totalCoins || 0;
-      this.selectedCharacter = data.selectedCharacter || 'birju';
-      const unlocked = data.unlockedCharacters || ['birju'];
+      this.selectedCharacter = data.selectedCharacter || 'Tabish Firoz';
+      const unlocked = data.unlockedCharacters || ['Tabish Firoz'];
       unlocked.forEach(id => {
         if (CHARACTERS[id]) CHARACTERS[id].unlocked = true;
       });
@@ -263,7 +263,7 @@ class MittiRunGame {
     } catch (e) {
       this.highScore = 0;
       this.totalCoins = 0;
-      this.selectedCharacter = 'birju';
+      this.selectedCharacter = 'Tabish Firoz';
     }
   }
 
@@ -335,7 +335,7 @@ class MittiRunGame {
     this.sunDisk = sunDisk;
   }
 
-  // ---------------- PLAYER CHARACTER (BIRJU) ----------------
+  // ---------------- PLAYER CHARACTER (Tabish Firoz) ----------------
   initPlayer() {
     this.playerGroup = new THREE.Group();
     this.playerGroup.position.set(0, 0, 0);
@@ -1120,7 +1120,7 @@ class MittiRunGame {
   }
 
   bindShopButtons() {
-    ['birju', 'lallan', 'champa'].forEach(charId => {
+    ['Tabish Firoz', 'lallan', 'champa'].forEach(charId => {
       const btn = document.getElementById(`btn-char-${charId}`);
       if (btn) {
         btn.addEventListener('click', () => {
@@ -1332,7 +1332,7 @@ class MittiRunGame {
 
   refreshShopUI() {
     document.getElementById('shop-coins-display').textContent = `₹ ${this.totalCoins}`;
-    ['birju', 'lallan', 'champa'].forEach(charId => {
+    ['Tabish Firoz', 'lallan', 'champa'].forEach(charId => {
       const card = document.getElementById(`card-${charId}`);
       const btn = document.getElementById(`btn-char-${charId}`);
       const info = CHARACTERS[charId];

@@ -60,35 +60,35 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="BirjuCard" type="PanelContainer" parent="Scroll/Grid"]
+[node name="Tabish FirozCard" type="PanelContainer" parent="Scroll/Grid"]
 layout_mode = 2
 
-[node name="HBox" type="HBoxContainer" parent="Scroll/Grid/BirjuCard"]
+[node name="HBox" type="HBoxContainer" parent="Scroll/Grid/Tabish FirozCard"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Info" type="VBoxContainer" parent="Scroll/Grid/BirjuCard/HBox"]
+[node name="Info" type="VBoxContainer" parent="Scroll/Grid/Tabish FirozCard/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Name" type="Label" parent="Scroll/Grid/BirjuCard/HBox/Info"]
+[node name="Name" type="Label" parent="Scroll/Grid/Tabish FirozCard/HBox/Info"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Birju"
+text = "Tabish Firoz"
 
-[node name="Desc" type="Label" parent="Scroll/Grid/BirjuCard/HBox/Info"]
+[node name="Desc" type="Label" parent="Scroll/Grid/Tabish FirozCard/HBox/Info"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 16
 text = "The Village Sprinter (Default)"
 
-[node name="StatusLabel" type="Label" parent="Scroll/Grid/BirjuCard"]
+[node name="StatusLabel" type="Label" parent="Scroll/Grid/Tabish FirozCard"]
 layout_mode = 2
 size_flags_horizontal = 8
 theme_override_colors/font_color = Color(0.3, 0.9, 0.4, 1)
 text = "SELECTED"
 
-[node name="SelectButton" type="Button" parent="Scroll/Grid/BirjuCard"]
+[node name="SelectButton" type="Button" parent="Scroll/Grid/Tabish FirozCard"]
 custom_minimum_size = Vector2(100, 44)
 layout_mode = 2
 size_flags_horizontal = 8

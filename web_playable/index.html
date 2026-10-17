@@ -1,201 +1,320 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MITTI RUN — A Desi Endless Adventure</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <!-- 3D Canvas Container -->
-  <div id="game-container"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>MITTI RUN — A Desi Endless Adventure</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="lucide.min.js"></script>
+  </head>
+  <body>
+    <!-- 3D Canvas Container -->
+    <div id="game-container"></div>
 
-  <!-- UI Overlay -->
-  <div id="ui-overlay">
-    <!-- In-Game HUD -->
-    <div id="hud" class="screen hidden">
-      <div class="hud-top">
-        <div class="hud-stat score-box">
-          <span class="hud-label">SCORE</span>
-          <span id="hud-score" class="hud-value">0</span>
-        </div>
-        <div class="hud-stat distance-box">
-          <span class="hud-label">DISTANCE</span>
-          <span id="hud-distance" class="hud-value">0 M</span>
-        </div>
-        <div class="hud-stat coins-box">
-          <span class="hud-label">COINS</span>
-          <span id="hud-coins" class="hud-value">₹ 0</span>
-        </div>
-        <button id="btn-pause" class="btn-icon" aria-label="Pause">⏸</button>
-      </div>
-
-      <!-- Power-up Active Indicators -->
-      <div id="hud-buffs">
-        <div id="buff-magnet" class="buff-item hidden">
-          <span class="buff-icon">🧲</span>
-          <div class="buff-bar-wrap"><div id="buff-magnet-fill" class="buff-bar-fill"></div></div>
-        </div>
-        <div id="buff-boost" class="buff-item hidden">
-          <span class="buff-icon">⚡</span>
-          <div class="buff-bar-wrap"><div id="buff-boost-fill" class="buff-bar-fill"></div></div>
-        </div>
-        <div id="buff-shield" class="buff-item hidden">
-          <span class="buff-icon">🛡️</span>
-          <span class="buff-text">SURAKSHA ON</span>
-        </div>
-      </div>
-
-      <!-- Mobile Touch Hint (Briefly shown on start) -->
-      <div id="touch-hint" class="hint-pulse">
-        <span>👈 Swipe Left / Right to Dodge 👉</span>
-        <span>⬆ Swipe Up to Jump • ⬇ Swipe Down to Slide</span>
-      </div>
-    </div>
-
-    <!-- Main Menu Screen -->
-    <div id="menu-screen" class="screen active">
-      <div class="menu-card">
-        <div class="sunset-badge">🌅 BIHAR ADVENTURE</div>
-        <h1 class="game-title">MITTI RUN</h1>
-        <p class="game-tagline">A Desi Endless Adventure</p>
-
-        <div class="stats-preview">
-          <div class="preview-stat">
-            <span class="stat-name">RECORD</span>
-            <span id="menu-best-score" class="stat-num">0</span>
+    <!-- UI Overlay -->
+    <div id="ui-overlay">
+      <!-- In-Game HUD -->
+      <div id="hud" class="screen hidden">
+        <div class="hud-top">
+          <div class="hud-stat score-box">
+            <span class="hud-label"
+              ><i data-lucide="trophy" class="icon-inline"></i> SCORE</span
+            >
+            <span id="hud-score" class="hud-value">0</span>
           </div>
-          <div class="preview-stat">
-            <span class="stat-name">BANK</span>
-            <span id="menu-total-coins" class="stat-num">₹ 0</span>
+          <div class="hud-stat distance-box">
+            <span class="hud-label"
+              ><i data-lucide="navigation" class="icon-inline"></i>
+              DISTANCE</span
+            >
+            <span id="hud-distance" class="hud-value">0 M</span>
           </div>
-          <div class="preview-stat">
-            <span class="stat-name">RUNNER</span>
-            <span id="menu-active-char" class="stat-num">Birju</span>
+          <div class="hud-stat coins-box">
+            <span class="hud-label"
+              ><i data-lucide="coins" class="icon-inline"></i> COINS</span
+            >
+            <span id="hud-coins" class="hud-value">₹ 0</span>
           </div>
+          <button id="btn-pause" class="btn-icon" aria-label="Pause">
+            <i data-lucide="pause"></i>
+          </button>
         </div>
 
-        <div class="menu-buttons">
-          <button id="btn-play" class="btn btn-primary btn-bounce">▶ PLAY RUN</button>
-          <div class="button-row">
-            <button id="btn-open-shop" class="btn btn-secondary">🛍️ SHOP</button>
-            <button id="btn-sound-toggle" class="btn btn-secondary">🔊 SOUND: ON</button>
-          </div>
-        </div>
-
-        <div class="menu-footer">
-          <p>Created by <strong>Tabish Firoz</strong></p>
-          <small>Inspired by Bihar's rustic village roads & railway crossings</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- Character Shop Screen -->
-    <div id="shop-screen" class="screen hidden">
-      <div class="shop-card">
-        <div class="shop-header">
-          <h2>DESI RUNNERS SHOP</h2>
-          <div class="shop-coins"><span id="shop-coins-display">₹ 0</span></div>
-        </div>
-
-        <div class="characters-grid">
-          <!-- Birju -->
-          <div class="char-card" id="card-birju">
-            <div class="char-avatar char-birju-preview">🏃‍♂️</div>
-            <div class="char-details">
-              <h3>Birju</h3>
-              <p>The Village Sprinter</p>
-              <span class="char-badge free">DEFAULT</span>
+        <!-- Power-up Active Indicators -->
+        <div id="hud-buffs">
+          <div id="buff-magnet" class="buff-item hidden">
+            <i data-lucide="magnet" class="buff-lucide"></i>
+            <div class="buff-bar-wrap">
+              <div id="buff-magnet-fill" class="buff-bar-fill"></div>
             </div>
-            <button id="btn-char-birju" class="btn btn-sm btn-select">ACTIVE</button>
           </div>
-
-          <!-- Lallan -->
-          <div class="char-card" id="card-lallan">
-            <div class="char-avatar char-lallan-preview">🛺</div>
-            <div class="char-details">
-              <h3>Lallan</h3>
-              <p>The Auto Rickshaw Rider</p>
-              <span class="char-price">₹ 150</span>
+          <div id="buff-boost" class="buff-item hidden">
+            <i data-lucide="zap" class="buff-lucide"></i>
+            <div class="buff-bar-wrap">
+              <div id="buff-boost-fill" class="buff-bar-fill"></div>
             </div>
-            <button id="btn-char-lallan" class="btn btn-sm btn-select">UNLOCK</button>
           </div>
+          <div id="buff-shield" class="buff-item hidden">
+            <i data-lucide="shield" class="buff-lucide"></i>
+            <span class="buff-text">SURAKSHA ON</span>
+          </div>
+        </div>
 
-          <!-- Champa -->
-          <div class="char-card" id="card-champa">
-            <div class="char-avatar char-champa-preview">⚡</div>
-            <div class="char-details">
-              <h3>Champa</h3>
-              <p>The Fast Runner</p>
-              <span class="char-price">₹ 300</span>
+        <!-- Mobile Touch Hint (Briefly shown on start) -->
+        <div id="touch-hint" class="hint-pulse">
+          <span
+            ><i data-lucide="move-horizontal" class="icon-inline"></i> Swipe
+            Left / Right to Dodge</span
+          >
+          <span
+            ><i data-lucide="arrow-up" class="icon-inline"></i> Jump &bull;
+            <i data-lucide="arrow-down" class="icon-inline"></i> Slide</span
+          >
+        </div>
+      </div>
+
+      <!-- Main Menu Screen -->
+      <div id="menu-screen" class="screen active">
+        <div class="menu-card">
+          <div class="sunset-badge">
+            <i data-lucide="sun" class="icon-inline"></i> BIHAR ADVENTURE
+          </div>
+          <h1 class="game-title">MITTI RUN</h1>
+          <p class="game-tagline">A Desi Endless Adventure</p>
+
+          <div class="stats-preview">
+            <div class="preview-stat">
+              <span class="stat-name"
+                ><i data-lucide="trophy" class="icon-xs"></i> RECORD</span
+              >
+              <span id="menu-best-score" class="stat-num">0</span>
             </div>
-            <button id="btn-char-champa" class="btn btn-sm btn-select">UNLOCK</button>
+            <div class="preview-stat">
+              <span class="stat-name"
+                ><i data-lucide="coins" class="icon-xs"></i> BANK</span
+              >
+              <span id="menu-total-coins" class="stat-num">₹ 0</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-name"
+                ><i data-lucide="user" class="icon-xs"></i> RUNNER</span
+              >
+              <span id="menu-active-char" class="stat-num">Birju</span>
+            </div>
+          </div>
+
+          <div class="menu-buttons">
+            <button id="btn-play" class="btn btn-primary btn-bounce">
+              <i data-lucide="play" class="btn-icon-mr"></i> PLAY RUN
+            </button>
+            <div class="button-row">
+              <button id="btn-open-shop" class="btn btn-secondary">
+                <i data-lucide="shopping-bag" class="btn-icon-mr"></i> SHOP
+              </button>
+              <button id="btn-sound-toggle" class="btn btn-secondary">
+                <i
+                  data-lucide="volume-2"
+                  id="menu-sound-icon"
+                  class="btn-icon-mr"
+                ></i>
+                <span id="sound-btn-text">SOUND: ON</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Prominent Developer & Designer Card -->
+          <div class="developer-signature-card">
+            <div class="dev-badge-header">
+              <i data-lucide="award" class="dev-badge-icon"></i>
+              <div class="dev-badge-text">
+                <span class="dev-badge-sub">DESIGNED &amp; DEVELOPED BY</span>
+                <span class="dev-badge-name">TABISH FIROZ</span>
+              </div>
+            </div>
+            <div class="dev-badge-footer">
+              <span class="dev-badge-tag"
+                ><i data-lucide="smartphone" class="icon-xxs"></i> Android
+                Game</span
+              >
+              <span class="dev-badge-tag"
+                ><i data-lucide="map-pin" class="icon-xxs"></i> Bihar
+                Inspired</span
+              >
+            </div>
           </div>
         </div>
+      </div>
 
-        <button id="btn-close-shop" class="btn btn-secondary btn-full">⬅ BACK TO MENU</button>
+      <!-- Character Shop Screen -->
+      <div id="shop-screen" class="screen hidden">
+        <div class="shop-card">
+          <div class="shop-header">
+            <h2>
+              <i data-lucide="shopping-bag" class="icon-inline"></i> DESI
+              RUNNERS SHOP
+            </h2>
+            <div class="shop-coins">
+              <i data-lucide="coins" class="icon-xs"></i>
+              <span id="shop-coins-display">₹ 0</span>
+            </div>
+          </div>
+
+          <div class="characters-grid">
+            <!-- Birju -->
+            <div class="char-card" id="card-birju">
+              <div class="char-avatar char-birju-preview">
+                <i data-lucide="footprints"></i>
+              </div>
+              <div class="char-details">
+                <h3>Birju</h3>
+                <p>The Village Sprinter</p>
+                <span class="char-badge free"
+                  ><i data-lucide="check" class="icon-xxs"></i> DEFAULT</span
+                >
+              </div>
+              <button id="btn-char-birju" class="btn btn-sm btn-select">
+                ACTIVE
+              </button>
+            </div>
+
+            <!-- Lallan -->
+            <div class="char-card" id="card-lallan">
+              <div class="char-avatar char-lallan-preview">
+                <i data-lucide="gauge"></i>
+              </div>
+              <div class="char-details">
+                <h3>Lallan</h3>
+                <p>The Auto Rickshaw Rider</p>
+                <span class="char-price">₹ 150</span>
+              </div>
+              <button id="btn-char-lallan" class="btn btn-sm btn-select">
+                UNLOCK
+              </button>
+            </div>
+
+            <!-- Champa -->
+            <div class="char-card" id="card-champa">
+              <div class="char-avatar char-champa-preview">
+                <i data-lucide="flame"></i>
+              </div>
+              <div class="char-details">
+                <h3>Champa</h3>
+                <p>The Fast Runner</p>
+                <span class="char-price">₹ 300</span>
+              </div>
+              <button id="btn-char-champa" class="btn btn-sm btn-select">
+                UNLOCK
+              </button>
+            </div>
+          </div>
+
+          <button id="btn-close-shop" class="btn btn-secondary btn-full">
+            <i data-lucide="arrow-left" class="btn-icon-mr"></i> BACK TO MENU
+          </button>
+
+          <div class="screen-footer-credit">
+            Designed &amp; Developed by <strong>Tabish Firoz</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pause Screen -->
+      <div id="pause-screen" class="screen hidden">
+        <div class="pause-card">
+          <h2>
+            <i data-lucide="pause-circle" class="icon-inline"></i> GAME PAUSED
+          </h2>
+          <div class="menu-buttons">
+            <button id="btn-resume" class="btn btn-primary">
+              <i data-lucide="play" class="btn-icon-mr"></i> RESUME
+            </button>
+            <button id="btn-restart-pause" class="btn btn-secondary">
+              <i data-lucide="rotate-ccw" class="btn-icon-mr"></i> RESTART
+            </button>
+            <button id="btn-menu-pause" class="btn btn-secondary">
+              <i data-lucide="home" class="btn-icon-mr"></i> MAIN MENU
+            </button>
+          </div>
+          <div class="screen-footer-credit">
+            Designed &amp; Developed by <strong>Tabish Firoz</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div id="gameover-screen" class="screen hidden">
+        <div class="gameover-card">
+          <div class="gameover-header">
+            <div class="crash-icon-wrap">
+              <i data-lucide="zap-off" class="crash-lucide"></i>
+            </div>
+            <h2 class="gameover-title">KHEL KHATAM!</h2>
+            <div id="new-high-badge" class="new-record-tag hidden">
+              <i data-lucide="sparkles" class="icon-xs"></i> NEW HIGH SCORE!
+            </div>
+          </div>
+
+          <div class="final-stats">
+            <div class="final-stat-box">
+              <span class="stat-caption"
+                ><i data-lucide="star" class="icon-xxs"></i> SCORE</span
+              >
+              <span id="final-score" class="final-value">0</span>
+            </div>
+            <div class="final-stat-box">
+              <span class="stat-caption"
+                ><i data-lucide="navigation" class="icon-xxs"></i>
+                DISTANCE</span
+              >
+              <span id="final-distance" class="final-value">0 M</span>
+            </div>
+            <div class="final-stat-box">
+              <span class="stat-caption"
+                ><i data-lucide="coins" class="icon-xxs"></i> COINS</span
+              >
+              <span id="final-coins" class="final-value gold-text">+ ₹ 0</span>
+            </div>
+            <div class="final-stat-box">
+              <span class="stat-caption"
+                ><i data-lucide="trophy" class="icon-xxs"></i> RECORD</span
+              >
+              <span id="final-best" class="final-value">0</span>
+            </div>
+          </div>
+
+          <div class="menu-buttons">
+            <button id="btn-retry" class="btn btn-primary btn-bounce">
+              <i data-lucide="rotate-ccw" class="btn-icon-mr"></i> RUN AGAIN
+            </button>
+            <div class="button-row">
+              <button id="btn-over-shop" class="btn btn-secondary">
+                <i data-lucide="shopping-bag" class="btn-icon-mr"></i> SHOP
+              </button>
+              <button id="btn-over-menu" class="btn btn-secondary">
+                <i data-lucide="home" class="btn-icon-mr"></i> MENU
+              </button>
+            </div>
+          </div>
+
+          <!-- Developer Credit on Game Over -->
+          <div class="screen-footer-credit">
+            Designed &amp; Developed by <strong>Tabish Firoz</strong>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Pause Screen -->
-    <div id="pause-screen" class="screen hidden">
-      <div class="pause-card">
-        <h2>GAME PAUSED</h2>
-        <div class="menu-buttons">
-          <button id="btn-resume" class="btn btn-primary">▶ RESUME</button>
-          <button id="btn-restart-pause" class="btn btn-secondary">🔄 RESTART</button>
-          <button id="btn-menu-pause" class="btn btn-secondary">🏠 MAIN MENU</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Game Over Screen -->
-    <div id="gameover-screen" class="screen hidden">
-      <div class="gameover-card">
-        <div class="gameover-header">
-          <span class="crash-emoji">💥</span>
-          <h2 class="gameover-title">KHEL KHATAM!</h2>
-          <div id="new-high-badge" class="new-record-tag hidden">★ NEW HIGH SCORE! ★</div>
-        </div>
-
-        <div class="final-stats">
-          <div class="final-stat-box">
-            <span class="stat-caption">FINAL SCORE</span>
-            <span id="final-score" class="final-value">0</span>
-          </div>
-          <div class="final-stat-box">
-            <span class="stat-caption">DISTANCE</span>
-            <span id="final-distance" class="final-value">0 M</span>
-          </div>
-          <div class="final-stat-box">
-            <span class="stat-caption">COINS COLLECTED</span>
-            <span id="final-coins" class="final-value gold-text">+ ₹ 0</span>
-          </div>
-          <div class="final-stat-box">
-            <span class="stat-caption">BEST RECORD</span>
-            <span id="final-best" class="final-value">0</span>
-          </div>
-        </div>
-
-        <div class="menu-buttons">
-          <button id="btn-retry" class="btn btn-primary btn-bounce">🔄 RUN AGAIN</button>
-          <div class="button-row">
-            <button id="btn-over-shop" class="btn btn-secondary">🛍️ SHOP</button>
-            <button id="btn-over-menu" class="btn btn-secondary">🏠 MENU</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Import maps for ES module three.js -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "./node_modules/three/build/three.module.js"
+    <!-- Import maps for ES module three.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./node_modules/three/build/three.module.js"
+        }
       }
-    }
-  </script>
-  <script type="module" src="game.js"></script>
-</body>
+    </script>
+    <script type="module" src="game.js"></script>
+  </body>
 </html>

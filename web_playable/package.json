@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "lucide": "^1.59.0",
     "three": "^0.186.1"
   }
 }

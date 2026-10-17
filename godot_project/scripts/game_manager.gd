@@ -39,8 +39,8 @@ var save_data: Dictionary = {}
 
 # Characters catalog
 var CHARACTERS: Dictionary = {
-	"birju": {
-		"name": "Birju",
+	"Tabish Firoz": {
+		"name": "Tabish Firoz",
 		"tagline": "The Village Sprinter",
 		"cost": 0,
 		"color": Color(0.9, 0.3, 0.1), # Terracotta / Saffron
@@ -73,7 +73,7 @@ func _ready() -> void:
 
 func _load_persistent_data() -> void:
 	save_data = SaveManagerClass.load_save_data()
-	for char_id in save_data.get("unlocked_characters", ["birju"]):
+	for char_id in save_data.get("unlocked_characters", ["Tabish Firoz"]):
 		if CHARACTERS.has(char_id):
 			CHARACTERS[char_id]["unlocked"] = true
 	
@@ -194,7 +194,7 @@ func get_total_coins() -> int:
 	return save_data.get("total_coins", 0)
 
 func get_selected_character() -> String:
-	return save_data.get("selected_character", "birju")
+	return save_data.get("selected_character", "Tabish Firoz")
 
 func select_character(char_id: String) -> bool:
 	if CHARACTERS.has(char_id) and CHARACTERS[char_id]["unlocked"]:
@@ -210,7 +210,7 @@ func unlock_character(char_id: String) -> bool:
 	var total = get_total_coins()
 	if total >= cost and not CHARACTERS[char_id]["unlocked"]:
 		save_data["total_coins"] = total - cost
-		var unlocked_list: Array = save_data.get("unlocked_characters", ["birju"])
+		var unlocked_list: Array = save_data.get("unlocked_characters", ["Tabish Firoz"])
 		if not unlocked_list.has(char_id):
 			unlocked_list.append(char_id)
 		save_data["unlocked_characters"] = unlocked_list
