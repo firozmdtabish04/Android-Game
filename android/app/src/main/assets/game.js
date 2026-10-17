@@ -147,8 +147,8 @@ class DesiAudioManager {
 
 // ---------------- CHARACTER DEFINITIONS ----------------
 const CHARACTERS = {
-  Tabish Firoz: {
-    name: 'Tabish Firoz',
+  birju: {
+    name: 'Birju',
     tagline: 'The Village Sprinter',
     cost: 0,
     unlocked: true,
@@ -252,8 +252,8 @@ class MittiRunGame {
       const data = JSON.parse(localStorage.getItem('mitti_run_save') || '{}');
       this.highScore = data.highScore || 0;
       this.totalCoins = data.totalCoins || 0;
-      this.selectedCharacter = data.selectedCharacter || 'Tabish Firoz';
-      const unlocked = data.unlockedCharacters || ['Tabish Firoz'];
+      this.selectedCharacter = data.selectedCharacter || 'birju';
+      const unlocked = data.unlockedCharacters || ['birju'];
       unlocked.forEach(id => {
         if (CHARACTERS[id]) CHARACTERS[id].unlocked = true;
       });
@@ -263,7 +263,7 @@ class MittiRunGame {
     } catch (e) {
       this.highScore = 0;
       this.totalCoins = 0;
-      this.selectedCharacter = 'Tabish Firoz';
+      this.selectedCharacter = 'birju';
     }
   }
 
@@ -1075,9 +1075,9 @@ class MittiRunGame {
 
     document.getElementById('btn-sound-toggle').addEventListener('click', () => {
       this.audio.enabled = !this.audio.enabled;
-      document.getElementById('btn-sound-toggle').textContent = `🔊 SOUND: ${this.audio.enabled ? 'ON' : 'OFF'}`;
       this.audio.playClick();
       this.saveData();
+      this.updateMenuUI();
     });
 
     document.getElementById('btn-pause').addEventListener('click', () => {
@@ -1120,7 +1120,7 @@ class MittiRunGame {
   }
 
   bindShopButtons() {
-    ['Tabish Firoz', 'lallan', 'champa'].forEach(charId => {
+    ['birju', 'lallan', 'champa'].forEach(charId => {
       const btn = document.getElementById(`btn-char-${charId}`);
       if (btn) {
         btn.addEventListener('click', () => {
@@ -1232,6 +1232,13 @@ class MittiRunGame {
       target.classList.remove('hidden');
       target.classList.add('active');
     }
+    this.refreshIcons();
+  }
+
+  refreshIcons() {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   }
 
   pauseGame() {
@@ -1327,12 +1334,16 @@ class MittiRunGame {
     document.getElementById('menu-best-score').textContent = this.highScore;
     document.getElementById('menu-total-coins').textContent = `₹ ${this.totalCoins}`;
     document.getElementById('menu-active-char').textContent = CHARACTERS[this.selectedCharacter].name;
-    document.getElementById('btn-sound-toggle').textContent = `🔊 SOUND: ${this.audio.enabled ? 'ON' : 'OFF'}`;
+    const soundText = document.getElementById('sound-btn-text');
+    const soundIcon = document.getElementById('menu-sound-icon');
+    if (soundText) soundText.textContent = `SOUND: ${this.audio.enabled ? 'ON' : 'OFF'}`;
+    if (soundIcon) soundIcon.setAttribute('data-lucide', this.audio.enabled ? 'volume-2' : 'volume-x');
+    this.refreshIcons();
   }
 
   refreshShopUI() {
     document.getElementById('shop-coins-display').textContent = `₹ ${this.totalCoins}`;
-    ['Tabish Firoz', 'lallan', 'champa'].forEach(charId => {
+    ['birju', 'lallan', 'champa'].forEach(charId => {
       const card = document.getElementById(`card-${charId}`);
       const btn = document.getElementById(`btn-char-${charId}`);
       const info = CHARACTERS[charId];
