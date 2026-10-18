@@ -5,17 +5,17 @@ extends Control
 @onready var close_button: Button = $CloseButton
 @onready var coins_display: Label = $TopBar/CoinsLabel
 
-# Character 1: Tabish Firoz
-@onready var Tabish Firoz_btn: Button = $Scroll/Grid/Tabish FirozCard/SelectButton
-@onready var Tabish Firoz_status: Label = $Scroll/Grid/Tabish FirozCard/StatusLabel
+# Character 1: Tabish
+@onready var tabish_btn: Button = get_node_or_null("Scroll/Grid/TabishCard/SelectButton")
+@onready var tabish_status: Label = get_node_or_null("Scroll/Grid/TabishCard/StatusLabel")
 
-# Character 2: Lallan
-@onready var lallan_btn: Button = $Scroll/Grid/LallanCard/SelectButton
-@onready var lallan_status: Label = $Scroll/Grid/LallanCard/StatusLabel
+# Character 2: Akhil
+@onready var akhil_btn: Button = get_node_or_null("Scroll/Grid/AkhilCard/SelectButton")
+@onready var akhil_status: Label = get_node_or_null("Scroll/Grid/AkhilCard/StatusLabel")
 
-# Character 3: Champa
-@onready var champa_btn: Button = $Scroll/Grid/ChampaCard/SelectButton
-@onready var champa_status: Label = $Scroll/Grid/ChampaCard/StatusLabel
+# Character 3: Firoz
+@onready var firoz_btn: Button = get_node_or_null("Scroll/Grid/FirozCard/SelectButton")
+@onready var firoz_status: Label = get_node_or_null("Scroll/Grid/FirozCard/StatusLabel")
 
 signal shop_closed
 
@@ -23,9 +23,9 @@ func _ready() -> void:
 	if close_button:
 		close_button.pressed.connect(_on_close_pressed)
 		
-	if Tabish Firoz_btn: Tabish Firoz_btn.pressed.connect(func(): _on_char_button_pressed("Tabish Firoz"))
-	if lallan_btn: lallan_btn.pressed.connect(func(): _on_char_button_pressed("lallan"))
-	if champa_btn: champa_btn.pressed.connect(func(): _on_char_button_pressed("champa"))
+	if tabish_btn: tabish_btn.pressed.connect(func(): _on_char_button_pressed("tabish"))
+	if akhil_btn: akhil_btn.pressed.connect(func(): _on_char_button_pressed("akhil"))
+	if firoz_btn: firoz_btn.pressed.connect(func(): _on_char_button_pressed("firoz"))
 	
 	refresh_shop()
 
@@ -34,9 +34,9 @@ func refresh_shop() -> void:
 		coins_display.text = "₹ " + str(GameManager.get_total_coins())
 		
 	var selected = GameManager.get_selected_character()
-	_update_card("Tabish Firoz", Tabish Firoz_btn, Tabish Firoz_status, selected)
-	_update_card("lallan", lallan_btn, lallan_status, selected)
-	_update_card("champa", champa_btn, champa_status, selected)
+	_update_card("tabish", tabish_btn, tabish_status, selected)
+	_update_card("akhil", akhil_btn, akhil_status, selected)
+	_update_card("firoz", firoz_btn, firoz_status, selected)
 
 func _update_card(char_id: String, btn: Button, status: Label, selected: String) -> void:
 	if not btn or not status:

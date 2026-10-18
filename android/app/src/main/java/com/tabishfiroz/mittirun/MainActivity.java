@@ -34,15 +34,27 @@ public class MainActivity extends Activity {
         settings.setDatabaseEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
+        settings.setAllowFileAccessFromFileURLs(true);
+        settings.setAllowUniversalAccessFromFileURLs(true);
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         // Hardware acceleration
         mWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mWebView.setWebViewClient(new WebViewClient());
+        mWebView.setWebChromeClient(new LoggingChromeClient());
 
         // Load the local 3D game assets
         mWebView.loadUrl("file:///android_asset/index.html");
+    }
+
+    static class LoggingChromeClient extends android.webkit.WebChromeClient {
+        @Override
+        public boolean onConsoleMessage(android.webkit.ConsoleMessage cm) {
+            android.util.Log.d("MittiRunJS", cm.message() + " -- Line " + cm.lineNumber() + " of " + cm.sourceId());
+            return true;
+        }
     }
 
     @Override

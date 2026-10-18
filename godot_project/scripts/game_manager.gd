@@ -33,30 +33,32 @@ const SPEED_INCREMENT: float = 0.003
 var magnet_timer: float = 0.0
 var shield_active: bool = false
 var boost_timer: float = 0.0
+var last_milestone_level: int = 0
+var milestone_surge_timer: float = 0.0
 
 # Persistent data
 var save_data: Dictionary = {}
 
 # Characters catalog
 var CHARACTERS: Dictionary = {
-	"Tabish Firoz": {
-		"name": "Tabish Firoz",
+	"tabish": {
+		"name": "Tabish",
 		"tagline": "The Village Sprinter",
 		"cost": 0,
 		"color": Color(0.9, 0.3, 0.1), # Terracotta / Saffron
 		"dhoti_color": Color(0.95, 0.95, 0.9),
 		"unlocked": true
 	},
-	"lallan": {
-		"name": "Lallan",
+	"akhil": {
+		"name": "Akhil",
 		"tagline": "The Daring Auto Driver",
 		"cost": 150,
 		"color": Color(0.15, 0.65, 0.25), # Bihar Rickshaw Green
 		"dhoti_color": Color(0.95, 0.8, 0.1),
 		"unlocked": false
 	},
-	"champa": {
-		"name": "Champa",
+	"firoz": {
+		"name": "Firoz",
 		"tagline": "The Fast Runner",
 		"cost": 300,
 		"color": Color(0.85, 0.15, 0.45), # Vibrant Desi Pink
@@ -85,8 +87,24 @@ func _save_persistent_data() -> void:
 
 func _process(delta: float) -> void:
 	if current_state == GameState.PLAYING:
-		# Gradually increase speed over distance
-		var speed_mult = 1.6 if boost_timer > 0.0 else 1.0
+		# Check for 5,000 score milestones
+		var current_milestone: int = int(current_score / 5000)
+		if current_milestone > last_milestone_level:
+			last_milestone_level = current_milestone
+			milestone_surge_timer = 10.0 # 10s of 1.5x speed
+			SoundManager.play_sfx("powerup")
+			
+		if milestone_surge_timer > 0.0:
+			milestone_surge_timer = max(0.0, milestone_surge_timer - delta)
+			
+		var milestone_mult: float = 1.0
+		if milestone_surge_timer > 0.0:
+			milestone_mult = 1.5
+		elif last_milestone_level > 0:
+			milestone_mult = 1.25
+
+		var boost_mult = 1.6 if boost_timer > 0.0 else 1.0
+		var speed_mult = milestone_mult * boost_mult
 		var eff_speed = current_speed * speed_mult
 		current_speed = min(current_speed + SPEED_INCREMENT * delta * 60.0, MAX_SPEED)
 		
@@ -116,6 +134,8 @@ func start_game() -> void:
 	magnet_timer = 0.0
 	shield_active = false
 	boost_timer = 0.0
+	last_milestone_level = 0
+	milestone_surge_timer = 0.0
 	
 	current_state = GameState.PLAYING
 	game_state_changed.emit(current_state)

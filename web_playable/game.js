@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /**
  * MITTI RUN — A Desi Endless Adventure
@@ -31,7 +31,7 @@ class DesiAudioManager {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) this.ctx = new AudioCtx();
     }
-    if (this.ctx && this.ctx.state === 'suspended') {
+    if (this.ctx && this.ctx.state === "suspended") {
       this.ctx.resume();
     }
   }
@@ -41,7 +41,7 @@ class DesiAudioManager {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     const now = this.ctx.currentTime;
-    osc.type = 'sine';
+    osc.type = "sine";
     osc.frequency.setValueAtTime(987.77, now); // B5
     osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.12); // E6
     gain.gain.setValueAtTime(0.3, now);
@@ -57,7 +57,7 @@ class DesiAudioManager {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     const now = this.ctx.currentTime;
-    osc.type = 'triangle';
+    osc.type = "triangle";
     osc.frequency.setValueAtTime(220, now);
     osc.frequency.exponentialRampToValueAtTime(520, now + 0.16);
     gain.gain.setValueAtTime(0.25, now);
@@ -79,7 +79,7 @@ class DesiAudioManager {
     const noise = this.ctx.createBufferSource();
     noise.buffer = buffer;
     const filter = this.ctx.createBiquadFilter();
-    filter.type = 'lowpass';
+    filter.type = "lowpass";
     filter.frequency.setValueAtTime(600, this.ctx.currentTime);
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
@@ -100,7 +100,7 @@ class DesiAudioManager {
     const noise = this.ctx.createBufferSource();
     noise.buffer = buffer;
     const filter = this.ctx.createBiquadFilter();
-    filter.type = 'lowpass';
+    filter.type = "lowpass";
     filter.frequency.setValueAtTime(220, this.ctx.currentTime);
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
@@ -117,7 +117,7 @@ class DesiAudioManager {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       const t = now + idx * 0.06;
-      osc.type = 'square';
+      osc.type = "square";
       osc.frequency.setValueAtTime(freq, t);
       gain.gain.setValueAtTime(0.15, t);
       gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
@@ -133,7 +133,7 @@ class DesiAudioManager {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     const now = this.ctx.currentTime;
-    osc.type = 'sine';
+    osc.type = "sine";
     osc.frequency.setValueAtTime(800, now);
     osc.frequency.exponentialRampToValueAtTime(1000, now + 0.04);
     gain.gain.setValueAtTime(0.2, now);
@@ -143,53 +143,146 @@ class DesiAudioManager {
     osc.start(now);
     osc.stop(now + 0.04);
   }
+
+  playSurge() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + idx * 0.08;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.22, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.18);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.18);
+    });
+  }
 }
 
 // ---------------- CHARACTER DEFINITIONS ----------------
 const CHARACTERS = {
-  birju: {
-    name: 'Birju',
-    tagline: 'The Village Sprinter',
+  tabish: {
+    name: "Tabish",
+    tagline: "The Village Sprinter",
     cost: 0,
     unlocked: true,
     kurtaColor: 0xe65100, // Terracotta Saffron
     dhotiColor: 0xf5f5f0, // White Dhoti
-    gamchhaColor: 0xb71c1c  // Red checked Gamchha
+    gamchhaColor: 0xb71c1c, // Red checked Gamchha
   },
-  lallan: {
-    name: 'Lallan',
-    tagline: 'The Auto Rickshaw Rider',
+  akhil: {
+    name: "Akhil",
+    tagline: "The Auto Rickshaw Rider",
     cost: 150,
     unlocked: false,
     kurtaColor: 0x2e7d32, // Auto Rickshaw Green
     dhotiColor: 0xffd54f, // Yellow Dhoti
-    gamchhaColor: 0xff9800  // Orange Gamchha
+    gamchhaColor: 0xff9800, // Orange Gamchha
   },
-  champa: {
-    name: 'Champa',
-    tagline: 'The Fast Runner',
+  firoz: {
+    name: "Firoz",
+    tagline: "The Fast Runner",
     cost: 300,
     unlocked: false,
     kurtaColor: 0xad1457, // Vibrant Desi Magenta
     dhotiColor: 0x1976d2, // Blue Dhoti
-    gamchhaColor: 0xffeb3b  // Golden Yellow Scarf
-  }
+    gamchhaColor: 0xffeb3b, // Golden Yellow Scarf
+  },
+};
+
+// ---------------- MAP & ENVIRONMENT DEFINITIONS ----------------
+const MAPS = {
+  village: {
+    id: "village",
+    name: "Bihar Village",
+    shortName: "GAON",
+    subtitle: "Mitti Tracks & Mustard Fields",
+    groundColor: 0x3d6628,
+    roadColor: 0x7a5b43, // Mud clay
+    dashColor: 0xefd8a1,
+    shoulderColor: 0x937053,
+    skyColor: 0xff8a43,
+    fogColor: 0xff9e60,
+    sunColor: 0xfff3b0,
+  },
+  bazaar: {
+    id: "bazaar",
+    name: "Haat Bazaar",
+    shortName: "BAZAAR",
+    subtitle: "Local Market & Awnings",
+    groundColor: 0x4e342e,
+    roadColor: 0x3e3532, // Cobblestone street
+    dashColor: 0xd7ccc8,
+    shoulderColor: 0x5d4037,
+    skyColor: 0xd84315, // Festive twilight
+    fogColor: 0xbf360c,
+    sunColor: 0xffab40,
+  },
+  railway: {
+    id: "railway",
+    name: "Railway Junction",
+    shortName: "PATNA JN",
+    subtitle: "Platforms & Freight Tracks",
+    groundColor: 0x37474f, // Ballast gravel
+    roadColor: 0x212121, // Railway track bed
+    dashColor: 0x90a4ae,
+    shoulderColor: 0x455a64,
+    skyColor: 0x4a148c, // Dusk purple sky
+    fogColor: 0x512da8,
+    sunColor: 0xffd54f,
+  },
+  highway: {
+    id: "highway",
+    name: "NH-31 Highway",
+    shortName: "HIGHWAY",
+    subtitle: "Grand Trunk Expressway",
+    groundColor: 0x556b2f, // Dry savanna grass
+    roadColor: 0x1a2327, // Dark asphalt highway
+    dashColor: 0xffd600, // Bright yellow highway dashes
+    shoulderColor: 0x37474f,
+    skyColor: 0xe65100, // Golden sunset highway
+    fogColor: 0xff8f00,
+    sunColor: 0xfff176,
+  },
+  tour: {
+    id: "tour",
+    name: "Grand Bihar Tour",
+    shortName: "TOUR",
+    subtitle: "Dynamic Biomes Rotation",
+    groundColor: 0x3d6628,
+    roadColor: 0x7a5b43,
+    dashColor: 0xefd8a1,
+    shoulderColor: 0x937053,
+    skyColor: 0xff8a43,
+    fogColor: 0xff9e60,
+    sunColor: 0xfff3b0,
+  },
 };
 
 // ---------------- MAIN GAME CLASS ----------------
 class MittiRunGame {
   constructor() {
-    this.container = document.getElementById('game-container');
+    this.container = document.getElementById("game-container");
     this.audio = new DesiAudioManager();
 
     // Game state
-    this.state = 'MENU'; // MENU, PLAYING, PAUSED, GAMEOVER
+    this.state = "MENU"; // MENU, PLAYING, PAUSED, GAMEOVER
     this.score = 0;
     this.distance = 0;
     this.coinsThisRun = 0;
     this.currentSpeed = BASE_SPEED;
     this.currentLane = 1; // 0: Left, 1: Center, 2: Right
     this.targetX = LANES[1];
+
+    // Map & Biome state
+    this.selectedMap = "village";
+    this.currentBiome = "village";
+    this.targetSkyColor = new THREE.Color(0xff8a43);
+    this.targetFogColor = new THREE.Color(0xff9e60);
 
     // Jump & Slide
     this.playerY = 0;
@@ -198,10 +291,12 @@ class MittiRunGame {
     this.isSliding = false;
     this.slideTimer = 0;
 
-    // Power-ups
+    // Power-ups & Speed Milestones
     this.magnetTimer = 0;
     this.boostTimer = 0;
     this.shieldActive = false;
+    this.lastMilestoneLevel = 0;
+    this.milestoneSurgeTimer = 0.0;
 
     // Persistent storage
     this.loadSaveData();
@@ -249,37 +344,48 @@ class MittiRunGame {
   // ---------------- PERSISTENCE ----------------
   loadSaveData() {
     try {
-      const data = JSON.parse(localStorage.getItem('mitti_run_save') || '{}');
+      const data = JSON.parse(localStorage.getItem("mitti_run_save") || "{}");
       this.highScore = data.highScore || 0;
       this.totalCoins = data.totalCoins || 0;
-      this.selectedCharacter = data.selectedCharacter || 'birju';
-      const unlocked = data.unlockedCharacters || ['birju'];
-      unlocked.forEach(id => {
+      const rawChar = (data.selectedCharacter || "tabish").toLowerCase();
+      this.selectedCharacter = CHARACTERS[rawChar] ? rawChar : "tabish";
+      const unlocked = (data.unlockedCharacters || ["tabish"]).map(id => String(id).toLowerCase());
+      unlocked.forEach((id) => {
         if (CHARACTERS[id]) CHARACTERS[id].unlocked = true;
       });
-      if (typeof data.soundEnabled === 'boolean') {
+      CHARACTERS.tabish.unlocked = true;
+      if (typeof data.soundEnabled === "boolean") {
         this.audio.enabled = data.soundEnabled;
       }
     } catch (e) {
       this.highScore = 0;
       this.totalCoins = 0;
-      this.selectedCharacter = 'birju';
+      this.selectedCharacter = "tabish";
+    }
+    try {
+      const data = JSON.parse(localStorage.getItem("mitti_run_save") || "{}");
+      this.selectedMap = (data.selectedMap && MAPS[data.selectedMap]) ? data.selectedMap : "village";
+    } catch (e) {
+      this.selectedMap = "village";
     }
   }
 
   saveData() {
     try {
-      const unlocked = Object.keys(CHARACTERS).filter(id => CHARACTERS[id].unlocked);
+      const unlocked = Object.keys(CHARACTERS).filter(
+        (id) => CHARACTERS[id].unlocked,
+      );
       const data = {
         highScore: this.highScore,
         totalCoins: this.totalCoins,
         selectedCharacter: this.selectedCharacter,
+        selectedMap: this.selectedMap,
         unlockedCharacters: unlocked,
-        soundEnabled: this.audio.enabled
+        soundEnabled: this.audio.enabled,
       };
-      localStorage.setItem('mitti_run_save', JSON.stringify(data));
+      localStorage.setItem("mitti_run_save", JSON.stringify(data));
     } catch (e) {
-      console.warn('Could not save to localStorage', e);
+      console.warn("Could not save to localStorage", e);
     }
   }
 
@@ -343,10 +449,18 @@ class MittiRunGame {
     const charInfo = CHARACTERS[this.selectedCharacter];
 
     // Materials
-    this.playerMaterials.skin = new THREE.MeshLambertMaterial({ color: 0xc98a58 });
-    this.playerMaterials.kurta = new THREE.MeshLambertMaterial({ color: charInfo.kurtaColor });
-    this.playerMaterials.dhoti = new THREE.MeshLambertMaterial({ color: charInfo.dhotiColor });
-    this.playerMaterials.gamchha = new THREE.MeshLambertMaterial({ color: charInfo.gamchhaColor });
+    this.playerMaterials.skin = new THREE.MeshLambertMaterial({
+      color: 0xc98a58,
+    });
+    this.playerMaterials.kurta = new THREE.MeshLambertMaterial({
+      color: charInfo.kurtaColor,
+    });
+    this.playerMaterials.dhoti = new THREE.MeshLambertMaterial({
+      color: charInfo.dhotiColor,
+    });
+    this.playerMaterials.gamchha = new THREE.MeshLambertMaterial({
+      color: charInfo.gamchhaColor,
+    });
 
     // Hierarchy
     this.playerMesh = new THREE.Group();
@@ -406,7 +520,7 @@ class MittiRunGame {
       color: 0x00e5ff,
       transparent: true,
       opacity: 0.35,
-      wireframe: true
+      wireframe: true,
     });
     this.shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
     this.shieldMesh.position.y = 0.95;
@@ -418,15 +532,22 @@ class MittiRunGame {
 
   updatePlayerSkin() {
     const charInfo = CHARACTERS[this.selectedCharacter];
-    if (this.playerMaterials.kurta) this.playerMaterials.kurta.color.setHex(charInfo.kurtaColor);
-    if (this.playerMaterials.dhoti) this.playerMaterials.dhoti.color.setHex(charInfo.dhotiColor);
-    if (this.playerMaterials.gamchha) this.playerMaterials.gamchha.color.setHex(charInfo.gamchhaColor);
+    if (this.playerMaterials.kurta)
+      this.playerMaterials.kurta.color.setHex(charInfo.kurtaColor);
+    if (this.playerMaterials.dhoti)
+      this.playerMaterials.dhoti.color.setHex(charInfo.dhotiColor);
+    if (this.playerMaterials.gamchha)
+      this.playerMaterials.gamchha.color.setHex(charInfo.gamchhaColor);
   }
 
   // ---------------- MITTI DUST PARTICLES ----------------
   initDust() {
     const dustGeo = new THREE.SphereGeometry(0.12, 6, 6);
-    const dustMat = new THREE.MeshBasicMaterial({ color: 0x9e7855, transparent: true, opacity: 0.6 });
+    const dustMat = new THREE.MeshBasicMaterial({
+      color: 0x9e7855,
+      transparent: true,
+      opacity: 0.6,
+    });
     for (let i = 0; i < 20; i++) {
       const p = new THREE.Mesh(dustGeo, dustMat.clone());
       p.visible = false;
@@ -437,13 +558,13 @@ class MittiRunGame {
         maxLife: 0.4,
         vx: 0,
         vy: 0,
-        vz: 0
+        vz: 0,
       });
     }
   }
 
   spawnDustPuff(x, y, z) {
-    const p = this.dustParticles.find(item => item.life <= 0);
+    const p = this.dustParticles.find((item) => item.life <= 0);
     if (p) {
       p.mesh.position.set(x + (Math.random() - 0.5) * 0.3, y + 0.1, z + 0.2);
       p.mesh.scale.set(1, 1, 1);
@@ -456,13 +577,13 @@ class MittiRunGame {
   }
 
   updateDust(delta) {
-    this.dustParticles.forEach(p => {
+    this.dustParticles.forEach((p) => {
       if (p.life > 0) {
         p.life -= delta;
         p.mesh.position.x += p.vx * delta;
         p.mesh.position.y += p.vy * delta;
         p.mesh.position.z += p.vz * delta;
-        const progress = 1 - (p.life / p.maxLife);
+        const progress = 1 - p.life / p.maxLife;
         const s = 1 + progress * 2.5;
         p.mesh.scale.set(s, s, s);
         p.mesh.material.opacity = Math.max(0, 0.6 * (1 - progress));
@@ -481,7 +602,7 @@ class MittiRunGame {
 
   spawnChunk(isSafe = false) {
     this.chunkSpawnCounter++;
-    const isRailway = !isSafe && (this.chunkSpawnCounter % 6 === 0);
+    const isRailway = !isSafe && this.chunkSpawnCounter % 6 === 0;
 
     const chunk = new THREE.Group();
     chunk.position.set(0, 0, this.nextChunkZ);
@@ -504,7 +625,11 @@ class MittiRunGame {
 
     // Dashed Lane Dividers (White/Ochre road dashes)
     const dashGeo = new THREE.BoxGeometry(0.12, 0.33, 2.0);
-    const dashMat = new THREE.MeshBasicMaterial({ color: 0xefd8a1, transparent: true, opacity: 0.45 });
+    const dashMat = new THREE.MeshBasicMaterial({
+      color: 0xefd8a1,
+      transparent: true,
+      opacity: 0.45,
+    });
     for (let dz = -CHUNK_LENGTH / 2 + 1.5; dz < CHUNK_LENGTH / 2; dz += 4.5) {
       const dashL = new THREE.Mesh(dashGeo, dashMat);
       dashL.position.set(-1.25, -0.11, dz);
@@ -559,8 +684,12 @@ class MittiRunGame {
     const foliageGeo = new THREE.SphereGeometry(2.3, 10, 10);
     const foliageMat = new THREE.MeshLambertMaterial({ color: 0x2e5c1e });
 
-    [-6.5, 6.5].forEach(sideX => {
-      for (let zOffset = -CHUNK_LENGTH / 3; zOffset <= CHUNK_LENGTH / 3; zOffset += CHUNK_LENGTH / 1.8) {
+    [-6.5, 6.5].forEach((sideX) => {
+      for (
+        let zOffset = -CHUNK_LENGTH / 3;
+        zOffset <= CHUNK_LENGTH / 3;
+        zOffset += CHUNK_LENGTH / 1.8
+      ) {
         if (Math.random() < 0.75) {
           const tree = new THREE.Group();
           const trunk = new THREE.Mesh(treeTrunkGeo, treeTrunkMat);
@@ -571,7 +700,11 @@ class MittiRunGame {
           foliage.castShadow = true;
           tree.add(trunk);
           tree.add(foliage);
-          tree.position.set(sideX + (Math.random() - 0.5) * 1.5, 0, zOffset + (Math.random() - 0.5) * 4);
+          tree.position.set(
+            sideX + (Math.random() - 0.5) * 1.5,
+            0,
+            zOffset + (Math.random() - 0.5) * 4,
+          );
           chunk.add(tree);
         }
       }
@@ -712,7 +845,7 @@ class MittiRunGame {
     const freeLane = availableLanes[availableLanes.length - 1];
 
     // Spawn obstacles
-    obstacleLanes.forEach(laneIdx => {
+    obstacleLanes.forEach((laneIdx) => {
       const laneX = LANES[laneIdx];
       const zOffset = (Math.random() - 0.5) * (CHUNK_LENGTH * 0.65);
       const obsType = Math.floor(Math.random() * 5); // 0: Tractor, 1: Auto, 2: Cycle, 3: Pothole, 4: Barrier
@@ -723,23 +856,58 @@ class MittiRunGame {
       switch (obsType) {
         case 0: // Tractor
           obsMesh = this.buildTractor();
-          obsData = { type: 'tractor', width: 1.8, height: 2.2, depth: 2.6, canJump: false, canSlide: false };
+          obsData = {
+            type: "tractor",
+            width: 1.8,
+            height: 2.2,
+            depth: 2.6,
+            canJump: false,
+            canSlide: false,
+          };
           break;
         case 1: // Auto Rickshaw
           obsMesh = this.buildAutoRickshaw();
-          obsData = { type: 'auto', width: 1.5, height: 2.0, depth: 2.2, canJump: false, canSlide: false };
+          obsData = {
+            type: "auto",
+            width: 1.5,
+            height: 2.0,
+            depth: 2.2,
+            canJump: false,
+            canSlide: false,
+          };
           break;
         case 2: // Bicycle with milk cans
           obsMesh = this.buildBicycle();
-          obsData = { type: 'cycle', width: 0.9, height: 1.2, depth: 1.8, canJump: true, canSlide: false };
+          obsData = {
+            type: "cycle",
+            width: 0.9,
+            height: 1.2,
+            depth: 1.8,
+            canJump: true,
+            canSlide: false,
+          };
           break;
         case 3: // Pothole
           obsMesh = this.buildPothole();
-          obsData = { type: 'pothole', width: 1.6, height: 0.3, depth: 1.6, canJump: true, canSlide: false };
+          obsData = {
+            type: "pothole",
+            width: 1.6,
+            height: 0.3,
+            depth: 1.6,
+            canJump: true,
+            canSlide: false,
+          };
           break;
         case 4: // Bamboo Barrier
           obsMesh = this.buildBarrier();
-          obsData = { type: 'barrier', width: 2.1, height: 1.4, depth: 0.5, canJump: true, canSlide: true };
+          obsData = {
+            type: "barrier",
+            width: 2.1,
+            height: 1.4,
+            depth: 0.5,
+            canJump: true,
+            canSlide: true,
+          };
           break;
       }
 
@@ -751,7 +919,7 @@ class MittiRunGame {
           mesh: obsMesh,
           chunk: chunk,
           laneX: laneX,
-          ...obsData
+          ...obsData,
         });
       }
     });
@@ -771,12 +939,17 @@ class MittiRunGame {
 
     // Spawn Power-up occasionally (18% chance)
     if (Math.random() < 0.18) {
-      const pTypes = ['magnet', 'boost', 'shield'];
+      const pTypes = ["magnet", "boost", "shield"];
       const pType = pTypes[Math.floor(Math.random() * pTypes.length)];
       const pMesh = this.buildPowerupMesh(pType);
       pMesh.position.set(LANES[freeLane], 0.85, (Math.random() - 0.5) * 8);
       chunk.add(pMesh);
-      this.activePowerups.push({ mesh: pMesh, chunk: chunk, type: pType, collected: false });
+      this.activePowerups.push({
+        mesh: pMesh,
+        chunk: chunk,
+        type: pType,
+        collected: false,
+      });
     }
   }
 
@@ -856,7 +1029,11 @@ class MittiRunGame {
     auto.add(windshieldFrame);
 
     const glassGeo = new THREE.BoxGeometry(1.1, 0.55, 0.08);
-    const glassMat = new THREE.MeshBasicMaterial({ color: 0x81d4fa, transparent: true, opacity: 0.7 });
+    const glassMat = new THREE.MeshBasicMaterial({
+      color: 0x81d4fa,
+      transparent: true,
+      opacity: 0.7,
+    });
     const glass = new THREE.Mesh(glassGeo, glassMat);
     glass.position.set(0, 1.25, 0.78);
     auto.add(glass);
@@ -872,7 +1049,11 @@ class MittiRunGame {
     // 5. Wheels (Front wheel and 2 rear wheels)
     const wheelGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 14);
     const wheelMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
-    const hubcapMat = new THREE.MeshStandardMaterial({ color: 0xb0bec5, metalness: 0.8, roughness: 0.2 });
+    const hubcapMat = new THREE.MeshStandardMaterial({
+      color: 0xb0bec5,
+      metalness: 0.8,
+      roughness: 0.2,
+    });
 
     const frontWheel = new THREE.Mesh(wheelGeo, wheelMat);
     frontWheel.rotation.z = Math.PI / 2;
@@ -918,7 +1099,11 @@ class MittiRunGame {
 
     // Milk Dabbas (Aluminum Milk Cans on carrier)
     const canGeo = new THREE.CylinderGeometry(0.18, 0.2, 0.55, 10);
-    const canMat = new THREE.MeshStandardMaterial({ color: 0xdcdcdc, metalness: 0.8, roughness: 0.3 });
+    const canMat = new THREE.MeshStandardMaterial({
+      color: 0xdcdcdc,
+      metalness: 0.8,
+      roughness: 0.3,
+    });
     const canL = new THREE.Mesh(canGeo, canMat);
     canL.position.set(0.26, 0.45, -0.3);
     const canR = new THREE.Mesh(canGeo, canMat);
@@ -970,7 +1155,7 @@ class MittiRunGame {
       metalness: 0.9,
       roughness: 0.2,
       emissive: 0xffb300,
-      emissiveIntensity: 0.4
+      emissiveIntensity: 0.4,
     });
     const coin = new THREE.Mesh(coinGeo, coinMat);
     coin.rotation.x = Math.PI / 2;
@@ -981,14 +1166,14 @@ class MittiRunGame {
   buildPowerupMesh(type) {
     const group = new THREE.Group();
     let col = 0xff1744; // Magnet Red
-    if (type === 'boost') col = 0xff9100; // Boost Orange
-    if (type === 'shield') col = 0x00e5ff; // Shield Cyan
+    if (type === "boost") col = 0xff9100; // Boost Orange
+    if (type === "shield") col = 0x00e5ff; // Shield Cyan
 
     const sphereGeo = new THREE.SphereGeometry(0.48, 16, 16);
     const mat = new THREE.MeshLambertMaterial({
       color: col,
       emissive: col,
-      emissiveIntensity: 0.5
+      emissiveIntensity: 0.5,
     });
     const mesh = new THREE.Mesh(sphereGeo, mat);
     mesh.castShadow = true;
@@ -999,7 +1184,7 @@ class MittiRunGame {
   // ---------------- EVENT BINDINGS & CONTROLS ----------------
   bindEvents() {
     // Window Resize
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       if (!this.camera || !this.renderer) return;
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
@@ -1007,110 +1192,127 @@ class MittiRunGame {
     });
 
     // Touch Swipe Detection for Android & Mobile devices
-    window.addEventListener('touchstart', e => {
-      this.audio.init();
-      if (this.state !== 'PLAYING') return;
-      const touch = e.touches[0];
-      this.touchStartX = touch.clientX;
-      this.touchStartY = touch.clientY;
-      this.touchStartTime = Date.now();
-    }, { passive: true });
+    window.addEventListener(
+      "touchstart",
+      (e) => {
+        this.audio.init();
+        if (this.state !== "PLAYING") return;
+        const touch = e.touches[0];
+        this.touchStartX = touch.clientX;
+        this.touchStartY = touch.clientY;
+        this.touchStartTime = Date.now();
+      },
+      { passive: true },
+    );
 
-    window.addEventListener('touchend', e => {
-      if (this.state !== 'PLAYING') return;
-      const touch = e.changedTouches[0];
-      const deltaX = touch.clientX - this.touchStartX;
-      const deltaY = touch.clientY - this.touchStartY;
-      const elapsed = Date.now() - this.touchStartTime;
+    window.addEventListener(
+      "touchend",
+      (e) => {
+        if (this.state !== "PLAYING") return;
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - this.touchStartX;
+        const deltaY = touch.clientY - this.touchStartY;
+        const elapsed = Date.now() - this.touchStartTime;
 
-      if (elapsed > 800) return; // Too slow for swipe
+        if (elapsed > 800) return; // Too slow for swipe
 
-      const absX = Math.abs(deltaX);
-      const absY = Math.abs(deltaY);
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
 
-      if (Math.max(absX, absY) > 28) {
-        if (absX > absY) {
-          if (deltaX > 0) this.changeLane(1);
-          else this.changeLane(-1);
-        } else {
-          if (deltaY < 0) this.jump();
-          else this.slide();
+        if (Math.max(absX, absY) > 28) {
+          if (absX > absY) {
+            if (deltaX > 0) this.changeLane(1);
+            else this.changeLane(-1);
+          } else {
+            if (deltaY < 0) this.jump();
+            else this.slide();
+          }
         }
-      }
-    }, { passive: true });
+      },
+      { passive: true },
+    );
 
     // Keyboard Controls
-    window.addEventListener('keydown', e => {
+    window.addEventListener("keydown", (e) => {
       this.audio.init();
-      if (this.state !== 'PLAYING') return;
+      if (this.state !== "PLAYING") return;
 
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
         this.changeLane(-1);
-      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
         this.changeLane(1);
-      } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') {
+      } else if (
+        e.key === "ArrowUp" ||
+        e.key === "w" ||
+        e.key === "W" ||
+        e.key === " "
+      ) {
         this.jump();
-      } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+      } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
         this.slide();
       }
     });
 
     // UI Buttons
-    document.getElementById('btn-play').addEventListener('click', () => {
+    document.getElementById("btn-play").addEventListener("click", () => {
       this.audio.init();
       this.audio.playClick();
       this.startGame();
     });
 
-    document.getElementById('btn-open-shop').addEventListener('click', () => {
+    document.getElementById("btn-open-shop").addEventListener("click", () => {
       this.audio.init();
       this.audio.playClick();
       this.openShop();
     });
 
-    document.getElementById('btn-close-shop').addEventListener('click', () => {
+    document.getElementById("btn-close-shop").addEventListener("click", () => {
       this.audio.playClick();
       this.closeShop();
     });
 
-    document.getElementById('btn-sound-toggle').addEventListener('click', () => {
-      this.audio.enabled = !this.audio.enabled;
-      this.audio.playClick();
-      this.saveData();
-      this.updateMenuUI();
-    });
+    document
+      .getElementById("btn-sound-toggle")
+      .addEventListener("click", () => {
+        this.audio.enabled = !this.audio.enabled;
+        this.audio.playClick();
+        this.saveData();
+        this.updateMenuUI();
+      });
 
-    document.getElementById('btn-pause').addEventListener('click', () => {
+    document.getElementById("btn-pause").addEventListener("click", () => {
       this.audio.playClick();
       this.pauseGame();
     });
 
-    document.getElementById('btn-resume').addEventListener('click', () => {
+    document.getElementById("btn-resume").addEventListener("click", () => {
       this.audio.playClick();
       this.resumeGame();
     });
 
-    document.getElementById('btn-restart-pause').addEventListener('click', () => {
-      this.audio.playClick();
-      this.startGame();
-    });
+    document
+      .getElementById("btn-restart-pause")
+      .addEventListener("click", () => {
+        this.audio.playClick();
+        this.startGame();
+      });
 
-    document.getElementById('btn-menu-pause').addEventListener('click', () => {
+    document.getElementById("btn-menu-pause").addEventListener("click", () => {
       this.audio.playClick();
       this.returnToMenu();
     });
 
-    document.getElementById('btn-retry').addEventListener('click', () => {
+    document.getElementById("btn-retry").addEventListener("click", () => {
       this.audio.playClick();
       this.startGame();
     });
 
-    document.getElementById('btn-over-shop').addEventListener('click', () => {
+    document.getElementById("btn-over-shop").addEventListener("click", () => {
       this.audio.playClick();
       this.openShop();
     });
 
-    document.getElementById('btn-over-menu').addEventListener('click', () => {
+    document.getElementById("btn-over-menu").addEventListener("click", () => {
       this.audio.playClick();
       this.returnToMenu();
     });
@@ -1120,10 +1322,10 @@ class MittiRunGame {
   }
 
   bindShopButtons() {
-    ['birju', 'lallan', 'champa'].forEach(charId => {
+    ["tabish", "akhil", "firoz"].forEach((charId) => {
       const btn = document.getElementById(`btn-char-${charId}`);
       if (btn) {
-        btn.addEventListener('click', () => {
+        btn.addEventListener("click", () => {
           this.audio.playClick();
           const info = CHARACTERS[charId];
           if (info.unlocked) {
@@ -1178,7 +1380,7 @@ class MittiRunGame {
   }
 
   startGame() {
-    this.state = 'PLAYING';
+    this.state = "PLAYING";
     this.score = 0;
     this.distance = 0;
     this.coinsThisRun = 0;
@@ -1193,12 +1395,17 @@ class MittiRunGame {
     this.magnetTimer = 0;
     this.boostTimer = 0;
     this.shieldActive = false;
+    this.lastMilestoneLevel = 0;
+    this.milestoneSurgeTimer = 0.0;
+
+    const surgePopup = document.getElementById("surge-announcement");
+    if (surgePopup) surgePopup.classList.add("hidden");
 
     // Reset player position
     this.playerGroup.position.set(0, 0, 0);
 
     // Clear old chunks
-    this.chunks.forEach(chunk => this.scene.remove(chunk));
+    this.chunks.forEach((chunk) => this.scene.remove(chunk));
     this.chunks = [];
     this.activeObstacles = [];
     this.activeCoins = [];
@@ -1209,56 +1416,58 @@ class MittiRunGame {
     this.initInitialTrack();
 
     // UI Updates
-    this.showScreen('hud');
+    this.showScreen("hud");
 
     // Show touch hint briefly for 3 seconds
-    const hint = document.getElementById('touch-hint');
+    const hint = document.getElementById("touch-hint");
     if (hint) {
-      hint.style.display = 'flex';
-      setTimeout(() => { hint.style.display = 'none'; }, 3200);
+      hint.style.display = "flex";
+      setTimeout(() => {
+        hint.style.display = "none";
+      }, 3200);
     }
 
     this.updateHUD();
   }
 
   showScreen(screenId) {
-    const screens = document.querySelectorAll('.screen');
-    screens.forEach(s => {
-      s.classList.remove('active');
-      s.classList.add('hidden');
+    const screens = document.querySelectorAll(".screen");
+    screens.forEach((s) => {
+      s.classList.remove("active");
+      s.classList.add("hidden");
     });
     const target = document.getElementById(screenId);
     if (target) {
-      target.classList.remove('hidden');
-      target.classList.add('active');
+      target.classList.remove("hidden");
+      target.classList.add("active");
     }
     this.refreshIcons();
   }
 
   refreshIcons() {
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
       window.lucide.createIcons();
     }
   }
 
   pauseGame() {
-    if (this.state === 'PLAYING') {
-      this.state = 'PAUSED';
-      document.getElementById('pause-screen').classList.remove('hidden');
-      document.getElementById('pause-screen').classList.add('active');
+    if (this.state === "PLAYING") {
+      this.state = "PAUSED";
+      document.getElementById("pause-screen").classList.remove("hidden");
+      document.getElementById("pause-screen").classList.add("active");
     }
   }
 
   resumeGame() {
-    if (this.state === 'PAUSED') {
-      this.state = 'PLAYING';
-      document.getElementById('pause-screen').classList.add('hidden');
-      document.getElementById('pause-screen').classList.remove('active');
+    if (this.state === "PAUSED") {
+      this.state = "PLAYING";
+      document.getElementById("pause-screen").classList.add("hidden");
+      document.getElementById("pause-screen").classList.remove("active");
     }
   }
 
   gameOver() {
-    this.state = 'GAMEOVER';
+    this.state = "GAMEOVER";
     this.audio.playCrash();
 
     // Update persistent stats
@@ -1268,27 +1477,29 @@ class MittiRunGame {
     this.saveData();
 
     // Game over UI
-    document.getElementById('final-score').textContent = this.score;
-    document.getElementById('final-distance').textContent = `${Math.floor(this.distance)} M`;
-    document.getElementById('final-coins').textContent = `+ ₹ ${this.coinsThisRun}`;
-    document.getElementById('final-best').textContent = this.highScore;
+    document.getElementById("final-score").textContent = this.score;
+    document.getElementById("final-distance").textContent =
+      `${Math.floor(this.distance)} M`;
+    document.getElementById("final-coins").textContent =
+      `+ ₹ ${this.coinsThisRun}`;
+    document.getElementById("final-best").textContent = this.highScore;
 
-    const newRecordTag = document.getElementById('new-high-badge');
-    if (isNewRecord && this.score > 0) newRecordTag.classList.remove('hidden');
-    else newRecordTag.classList.add('hidden');
+    const newRecordTag = document.getElementById("new-high-badge");
+    if (isNewRecord && this.score > 0) newRecordTag.classList.remove("hidden");
+    else newRecordTag.classList.add("hidden");
 
-    this.showScreen('gameover-screen');
+    this.showScreen("gameover-screen");
   }
 
   returnToMenu() {
-    this.state = 'MENU';
-    this.showScreen('menu-screen');
+    this.state = "MENU";
+    this.showScreen("menu-screen");
     this.updateMenuUI();
   }
 
   openShop() {
-    this.state = 'SHOP';
-    this.showScreen('shop-screen');
+    this.state = "SHOP";
+    this.showScreen("shop-screen");
     this.refreshShopUI();
   }
 
@@ -1298,74 +1509,118 @@ class MittiRunGame {
 
   // ---------------- UI UPDATES ----------------
   updateHUD() {
-    document.getElementById('hud-score').textContent = this.score;
-    const distText = this.distance >= 1000 ? `${(this.distance / 1000).toFixed(2)} KM` : `${Math.floor(this.distance)} M`;
-    document.getElementById('hud-distance').textContent = distText;
-    document.getElementById('hud-coins').textContent = `₹ ${this.coinsThisRun}`;
+    document.getElementById("hud-score").textContent = this.score;
+    const distText =
+      this.distance >= 1000
+        ? `${(this.distance / 1000).toFixed(2)} KM`
+        : `${Math.floor(this.distance)} M`;
+    document.getElementById("hud-distance").textContent = distText;
+    document.getElementById("hud-coins").textContent = `₹ ${this.coinsThisRun}`;
 
     // Buffs
-    const magFill = document.getElementById('buff-magnet-fill');
-    const magItem = document.getElementById('buff-magnet');
+    const magFill = document.getElementById("buff-magnet-fill");
+    const magItem = document.getElementById("buff-magnet");
     if (this.magnetTimer > 0) {
-      magItem.classList.remove('hidden');
+      magItem.classList.remove("hidden");
       magFill.style.width = `${(this.magnetTimer / 10) * 100}%`;
     } else {
-      magItem.classList.add('hidden');
+      magItem.classList.add("hidden");
     }
 
-    const boostFill = document.getElementById('buff-boost-fill');
-    const boostItem = document.getElementById('buff-boost');
+    const boostFill = document.getElementById("buff-boost-fill");
+    const boostItem = document.getElementById("buff-boost");
     if (this.boostTimer > 0) {
-      boostItem.classList.remove('hidden');
+      boostItem.classList.remove("hidden");
       boostFill.style.width = `${(this.boostTimer / 6) * 100}%`;
     } else {
-      boostItem.classList.add('hidden');
+      boostItem.classList.add("hidden");
     }
 
-    const shieldItem = document.getElementById('buff-shield');
+    const shieldItem = document.getElementById("buff-shield");
     if (this.shieldActive) {
-      shieldItem.classList.remove('hidden');
+      shieldItem.classList.remove("hidden");
     } else {
-      shieldItem.classList.add('hidden');
+      shieldItem.classList.add("hidden");
+    }
+
+    // 5,000 Milestone Speed Indicator
+    const milestoneBuff = document.getElementById("buff-milestone");
+    const milestoneText = document.getElementById("buff-milestone-text");
+    if (milestoneBuff && milestoneText) {
+      if (this.milestoneSurgeTimer > 0) {
+        milestoneBuff.classList.remove("hidden");
+        milestoneBuff.classList.add("surge-active");
+        milestoneText.textContent = `⚡ 1.5x SURGE (${Math.ceil(this.milestoneSurgeTimer)}s)`;
+      } else if (this.lastMilestoneLevel > 0) {
+        milestoneBuff.classList.remove("hidden");
+        milestoneBuff.classList.remove("surge-active");
+        milestoneText.textContent = `⚡ SPEED 1.25x`;
+      } else {
+        milestoneBuff.classList.add("hidden");
+      }
+    }
+  }
+
+  triggerSurgeAnnouncement(score) {
+    const surgePopup = document.getElementById("surge-announcement");
+    const surgeScore = document.getElementById("surge-milestone-text");
+    if (surgePopup && surgeScore) {
+      surgeScore.textContent = `${score.toLocaleString()} PTS!`;
+      surgePopup.classList.remove("hidden");
+      // Re-trigger CSS animation
+      surgePopup.style.animation = "none";
+      void surgePopup.offsetHeight;
+      surgePopup.style.animation = "";
+      setTimeout(() => {
+        if (surgePopup) surgePopup.classList.add("hidden");
+      }, 2800);
     }
   }
 
   updateMenuUI() {
-    document.getElementById('menu-best-score').textContent = this.highScore;
-    document.getElementById('menu-total-coins').textContent = `₹ ${this.totalCoins}`;
-    document.getElementById('menu-active-char').textContent = CHARACTERS[this.selectedCharacter].name;
-    const soundText = document.getElementById('sound-btn-text');
-    const soundIcon = document.getElementById('menu-sound-icon');
-    if (soundText) soundText.textContent = `SOUND: ${this.audio.enabled ? 'ON' : 'OFF'}`;
-    if (soundIcon) soundIcon.setAttribute('data-lucide', this.audio.enabled ? 'volume-2' : 'volume-x');
+    document.getElementById("menu-best-score").textContent = this.highScore;
+    document.getElementById("menu-total-coins").textContent =
+      `₹ ${this.totalCoins}`;
+    document.getElementById("menu-active-char").textContent =
+      CHARACTERS[this.selectedCharacter].name;
+    const soundText = document.getElementById("sound-btn-text");
+    const soundIcon = document.getElementById("menu-sound-icon");
+    if (soundText)
+      soundText.textContent = `SOUND: ${this.audio.enabled ? "ON" : "OFF"}`;
+    if (soundIcon)
+      soundIcon.setAttribute(
+        "data-lucide",
+        this.audio.enabled ? "volume-2" : "volume-x",
+      );
     this.refreshIcons();
   }
 
   refreshShopUI() {
-    document.getElementById('shop-coins-display').textContent = `₹ ${this.totalCoins}`;
-    ['birju', 'lallan', 'champa'].forEach(charId => {
+    document.getElementById("shop-coins-display").textContent =
+      `₹ ${this.totalCoins}`;
+    ["tabish", "akhil", "firoz"].forEach((charId) => {
       const card = document.getElementById(`card-${charId}`);
       const btn = document.getElementById(`btn-char-${charId}`);
       const info = CHARACTERS[charId];
 
       if (this.selectedCharacter === charId) {
-        card.classList.add('selected');
-        btn.textContent = 'ACTIVE';
-        btn.className = 'btn btn-sm btn-select active';
+        card.classList.add("selected");
+        btn.textContent = "ACTIVE";
+        btn.className = "btn btn-sm btn-select active";
       } else if (info.unlocked) {
-        card.classList.remove('selected');
-        btn.textContent = 'CHOOSE';
-        btn.className = 'btn btn-sm btn-secondary';
+        card.classList.remove("selected");
+        btn.textContent = "CHOOSE";
+        btn.className = "btn btn-sm btn-secondary";
       } else {
-        card.classList.remove('selected');
+        card.classList.remove("selected");
         btn.textContent = `₹ ${info.cost}`;
-        btn.className = 'btn btn-sm btn-primary';
+        btn.className = "btn btn-sm btn-primary";
         if (this.totalCoins < info.cost) {
-          btn.style.opacity = '0.5';
-          btn.style.pointerEvents = 'none';
+          btn.style.opacity = "0.5";
+          btn.style.pointerEvents = "none";
         } else {
-          btn.style.opacity = '1';
-          btn.style.pointerEvents = 'auto';
+          btn.style.opacity = "1";
+          btn.style.pointerEvents = "auto";
         }
       }
     });
@@ -1376,7 +1631,7 @@ class MittiRunGame {
     requestAnimationFrame(this.animate);
     const delta = Math.min(this.clock.getDelta(), 0.1);
 
-    if (this.state === 'PLAYING') {
+    if (this.state === "PLAYING") {
       this.updatePhysics(delta);
       this.updateTrackAndChunks(delta);
       this.updateCollectibles(delta);
@@ -1387,8 +1642,11 @@ class MittiRunGame {
     // Camera follow player
     if (this.playerGroup && this.camera) {
       this.camera.position.z = this.playerGroup.position.z + 6.2;
-      this.camera.position.x += (this.playerGroup.position.x * 0.65 - this.camera.position.x) * 0.1;
-      this.camera.position.y += (this.playerGroup.position.y * 0.5 + 3.6 - this.camera.position.y) * 0.1;
+      this.camera.position.x +=
+        (this.playerGroup.position.x * 0.65 - this.camera.position.x) * 0.1;
+      this.camera.position.y +=
+        (this.playerGroup.position.y * 0.5 + 3.6 - this.camera.position.y) *
+        0.1;
 
       // Keep sun on distant horizon ahead of player
       if (this.sunDisk) {
@@ -1405,19 +1663,47 @@ class MittiRunGame {
   }
 
   updatePhysics(delta) {
-    // 1. Forward Motion & Distance
-    const speedMult = this.boostTimer > 0 ? 1.6 : 1.0;
+    // 1. Milestone Surge Timer Countdown
+    if (this.milestoneSurgeTimer > 0) {
+      this.milestoneSurgeTimer -= delta;
+      if (this.milestoneSurgeTimer < 0) this.milestoneSurgeTimer = 0;
+    }
+
+    // Speed Multiplier:
+    // Every 5,000 score: speed surges to 1.5x for 10 seconds, then decreases and continues with 1.25x
+    let milestoneMult = 1.0;
+    if (this.milestoneSurgeTimer > 0) {
+      milestoneMult = 1.5;
+    } else if (this.lastMilestoneLevel > 0) {
+      milestoneMult = 1.25;
+    }
+
+    const boostMult = this.boostTimer > 0 ? 1.6 : 1.0;
+    const speedMult = milestoneMult * boostMult;
     const effSpeed = this.currentSpeed * speedMult;
-    this.currentSpeed = Math.min(this.currentSpeed + SPEED_INCREMENT * delta, MAX_SPEED);
+    this.currentSpeed = Math.min(
+      this.currentSpeed + SPEED_INCREMENT * delta,
+      MAX_SPEED,
+    );
 
     const forwardMovement = effSpeed * delta;
     this.playerGroup.position.z -= forwardMovement;
     this.distance += forwardMovement;
     this.score = Math.floor(this.distance) + this.coinsThisRun * 10;
 
+    // Check for 5,000 score milestones (5,000, 10,000, 15,000, ...)
+    const currentMilestone = Math.floor(this.score / 5000);
+    if (currentMilestone > this.lastMilestoneLevel) {
+      this.lastMilestoneLevel = currentMilestone;
+      this.milestoneSurgeTimer = 10.0; // 10 seconds of 1.5x speed
+      this.audio.playSurge();
+      this.triggerSurgeAnnouncement(currentMilestone * 5000);
+    }
+
     // 2. Smooth Lane Interpolation
     const curX = this.playerGroup.position.x;
-    this.playerGroup.position.x += (this.targetX - curX) * LANE_CHANGE_SPEED * delta;
+    this.playerGroup.position.x +=
+      (this.targetX - curX) * LANE_CHANGE_SPEED * delta;
 
     // 3. Jump Physics
     if (this.isJumping) {
@@ -1427,7 +1713,11 @@ class MittiRunGame {
         this.playerY = 0;
         this.verticalVelocity = 0;
         this.isJumping = false;
-        this.spawnDustPuff(this.playerGroup.position.x, 0, this.playerGroup.position.z);
+        this.spawnDustPuff(
+          this.playerGroup.position.x,
+          0,
+          this.playerGroup.position.z,
+        );
       }
     }
 
@@ -1465,7 +1755,11 @@ class MittiRunGame {
 
         // Spawn dust while running on dirt
         if (Math.random() < 0.25) {
-          this.spawnDustPuff(this.playerGroup.position.x, 0, this.playerGroup.position.z);
+          this.spawnDustPuff(
+            this.playerGroup.position.x,
+            0,
+            this.playerGroup.position.z,
+          );
         }
       }
     }
@@ -1499,7 +1793,7 @@ class MittiRunGame {
       const dz = Math.abs(playerZ - worldPos.z);
       const dx = Math.abs(playerX - worldPos.x);
 
-      if (dz < (obs.depth * 0.45 + 0.3) && dx < (obs.width * 0.42 + 0.3)) {
+      if (dz < obs.depth * 0.45 + 0.3 && dx < obs.width * 0.42 + 0.3) {
         // Can duck under barrier?
         if (obs.canSlide && this.isSliding) {
           continue; // Ducked safely!
@@ -1542,9 +1836,15 @@ class MittiRunGame {
         this.scene.remove(oldestChunk);
 
         // Filter out destroyed chunk's entities
-        this.activeObstacles = this.activeObstacles.filter(o => o.chunk !== oldestChunk);
-        this.activeCoins = this.activeCoins.filter(c => c.chunk !== oldestChunk);
-        this.activePowerups = this.activePowerups.filter(p => p.chunk !== oldestChunk);
+        this.activeObstacles = this.activeObstacles.filter(
+          (o) => o.chunk !== oldestChunk,
+        );
+        this.activeCoins = this.activeCoins.filter(
+          (c) => c.chunk !== oldestChunk,
+        );
+        this.activePowerups = this.activePowerups.filter(
+          (p) => p.chunk !== oldestChunk,
+        );
 
         // Spawn next forward chunk
         this.spawnChunk(false);
@@ -1558,7 +1858,7 @@ class MittiRunGame {
     const playerY = this.playerGroup.position.y;
 
     // Coins
-    this.activeCoins.forEach(coin => {
+    this.activeCoins.forEach((coin) => {
       if (coin.collected) return;
       coin.mesh.rotation.z += 4.0 * delta;
 
@@ -1584,7 +1884,7 @@ class MittiRunGame {
     });
 
     // Power-ups
-    this.activePowerups.forEach(p => {
+    this.activePowerups.forEach((p) => {
       if (p.collected) return;
       p.mesh.rotation.y += 3.0 * delta;
       p.mesh.position.y = 0.85 + Math.sin(this.distance * 0.1) * 0.2;
@@ -1598,15 +1898,34 @@ class MittiRunGame {
         p.mesh.visible = false;
         this.audio.playPowerup();
 
-        if (p.type === 'magnet') this.magnetTimer = 10.0;
-        else if (p.type === 'boost') this.boostTimer = 6.0;
-        else if (p.type === 'shield') this.shieldActive = true;
+        if (p.type === "magnet") this.magnetTimer = 10.0;
+        else if (p.type === "boost") this.boostTimer = 6.0;
+        else if (p.type === "shield") this.shieldActive = true;
       }
     });
   }
 }
 
 // ---------------- BOOTSTRAP ----------------
-window.addEventListener('DOMContentLoaded', () => {
-  window.mGame = new MittiRunGame();
-});
+function bootMittiRun() {
+  if (window.mGame) return;
+  try {
+    window.mGame = new MittiRunGame();
+    console.log("[MittiRun] Game engine initialized successfully.");
+  } catch (err) {
+    console.error("[MittiRun] Initialization failed:", err);
+    const errDiv = document.createElement("div");
+    errDiv.style.cssText =
+      "position:fixed;bottom:12px;left:12px;right:12px;background:rgba(211,47,47,0.9);color:#fff;padding:12px;border-radius:8px;font-family:sans-serif;font-size:13px;z-index:999999;box-shadow:0 4px 12px rgba(0,0,0,0.5);";
+    errDiv.innerHTML =
+      "<strong>Mitti Run Error:</strong> " +
+      (err && err.message ? err.message : String(err));
+    document.body.appendChild(errDiv);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootMittiRun);
+} else {
+  bootMittiRun();
+}

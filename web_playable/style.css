@@ -185,6 +185,85 @@ body {
   border-radius: 4px;
 }
 
+.buff-item.surge-active {
+  border-color: #ff3d00;
+  background: linear-gradient(90deg, rgba(255, 61, 0, 0.4), rgba(255, 145, 0, 0.4));
+  box-shadow: 0 0 12px rgba(255, 61, 0, 0.8);
+  animation: surgePulse 0.8s infinite alternate;
+}
+
+@keyframes surgePulse {
+  from { transform: scale(1); filter: brightness(1); }
+  to { transform: scale(1.06); filter: brightness(1.3); }
+}
+
+/* 5,000 Milestone Surge Popup Banner */
+.surge-popup {
+  position: absolute;
+  top: 24%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(230, 81, 0, 0.96), rgba(183, 28, 28, 0.96));
+  border: 3px solid #ffeb3b;
+  box-shadow: 0 0 30px rgba(255, 235, 59, 0.8), 0 10px 40px rgba(0, 0, 0, 0.8);
+  border-radius: 20px;
+  padding: 14px 24px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 1000;
+  animation: surgeBannerAnim 2.8s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.surge-popup.hidden {
+  display: none !important;
+}
+
+.surge-tag {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffeb3b;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+}
+
+.surge-score {
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 3px 0;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.surge-sub {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffe082;
+  letter-spacing: 0.5px;
+}
+
+@keyframes surgeBannerAnim {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -30%) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -70%) scale(0.8);
+  }
+}
+
 /* Hint */
 #touch-hint {
   align-self: center;
@@ -352,6 +431,30 @@ body {
   animation: pulseButton 2s infinite;
 }
 
+.btn-download-apk {
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  border: 1px solid #66bb6a;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 16px;
+  padding: 12px 18px;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.4);
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+.btn-download-apk:active {
+  transform: scale(0.96);
+}
+
+.btn-download-apk:hover {
+  filter: brightness(1.15);
+}
+
 .menu-footer {
   margin-top: 20px;
   font-size: 12px;
@@ -428,13 +531,13 @@ body {
   justify-content: center;
 }
 
-.char-Tabish Firoz-preview {
+.char-tabish-preview {
   background: #e65100;
 }
-.char-lallan-preview {
+.char-akhil-preview {
   background: #2e7d32;
 }
-.char-champa-preview {
+.char-firoz-preview {
   background: #ad1457;
 }
 
@@ -726,4 +829,119 @@ svg.lucide,
 .screen-footer-credit strong {
   color: #ffa726;
   font-weight: 800;
+}
+
+/* ---------------- MAPS SCREEN & CARDS ---------------- */
+.maps-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.map-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 10px 14px;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.map-card.active {
+  border-color: #ff9800;
+  background: rgba(255, 152, 0, 0.15);
+}
+
+.map-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.map-village-bg {
+  background: linear-gradient(135deg, #2e7d32 0%, #558b2f 100%);
+}
+
+.map-bazaar-bg {
+  background: linear-gradient(135deg, #d84315 0%, #ff8f00 100%);
+}
+
+.map-railway-bg {
+  background: linear-gradient(135deg, #455a64 0%, #37474f 100%);
+}
+
+.map-highway-bg {
+  background: linear-gradient(135deg, #1565c0 0%, #00838f 100%);
+}
+
+.map-tour-bg {
+  background: linear-gradient(135deg, #6a1b9a 0%, #ad1457 100%);
+}
+
+.map-details {
+  flex: 1;
+}
+
+.map-details h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.map-details p {
+  font-size: 11px;
+  color: #b0bec5;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.map-tag {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 8px;
+  display: inline-block;
+  letter-spacing: 0.5px;
+}
+
+.map-tag.village {
+  background: rgba(76, 175, 80, 0.25);
+  color: #81c784;
+}
+
+.map-tag.bazaar {
+  background: rgba(255, 152, 0, 0.25);
+  color: #ffb74d;
+}
+
+.map-tag.railway {
+  background: rgba(144, 164, 174, 0.25);
+  color: #cfd8dc;
+}
+
+.map-tag.highway {
+  background: rgba(33, 150, 243, 0.25);
+  color: #64b5f6;
+}
+
+.map-tag.tour {
+  background: rgba(186, 104, 200, 0.25);
+  color: #ce93d8;
+}
+
+.hud-stat.map-box {
+  border-color: rgba(255, 179, 0, 0.6);
+  background: rgba(255, 179, 0, 0.12);
 }

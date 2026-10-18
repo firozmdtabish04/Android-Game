@@ -7,8 +7,8 @@ static func load_save_data() -> Dictionary:
 	var default_data = {
 		"high_score": 0,
 		"total_coins": 0,
-		"unlocked_characters": ["Tabish Firoz"],
-		"selected_character": "Tabish Firoz",
+		"unlocked_characters": ["tabish"],
+		"selected_character": "tabish",
 		"sound_enabled": true,
 		"music_enabled": true,
 		"runs_played": 0

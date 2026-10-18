@@ -11,7 +11,18 @@ $D8 = "$BUILD_TOOLS\d8.bat"
 
 Write-Host ">>> Starting MITTI RUN APK Build..." -ForegroundColor Cyan
 
-# 0. Prep build directory
+# 0. Bundle Web Assets
+Write-Host ">>> Step 0: Bundling web engine into single IIFE bundle..." -ForegroundColor Yellow
+npx esbuild "web_playable\game.js" --bundle --minify --format=iife --outfile="web_playable\bundle.js"
+
+$ASSETS_DIR = "android\app\src\main\assets"
+if (-not (Test-Path $ASSETS_DIR)) { New-Item -ItemType Directory -Force -Path $ASSETS_DIR | Out-Null }
+Copy-Item "web_playable\index.html" -Destination "$ASSETS_DIR\index.html" -Force
+Copy-Item "web_playable\style.css" -Destination "$ASSETS_DIR\style.css" -Force
+Copy-Item "web_playable\bundle.js" -Destination "$ASSETS_DIR\bundle.js" -Force
+Copy-Item "web_playable\lucide.min.js" -Destination "$ASSETS_DIR\lucide.min.js" -Force
+
+# Prep build directory
 $BUILD_DIR = "d:\FullStack\UIUX\AndroidGame\build"
 if (Test-Path $BUILD_DIR) { Remove-Item -Recurse -Force $BUILD_DIR }
 New-Item -ItemType Directory -Force -Path "$BUILD_DIR\gen" | Out-Null
@@ -26,9 +37,11 @@ Write-Host ">>> Step 1: Compiling resources with aapt2..." -ForegroundColor Yell
 Write-Host ">>> Step 2: Linking APK and generating R.java..." -ForegroundColor Yellow
 & $AAPT2 link -I $PLATFORM `
     --manifest "android\app\src\main\AndroidManifest.xml" `
+    --min-sdk-version 24 `
+    --target-sdk-version 34 `
     -o "$BUILD_DIR\unaligned.apk" `
     --java "$BUILD_DIR\gen" `
-    -A "android\app\src\main\assets" `
+    -A $ASSETS_DIR `
     --auto-add-overlay `
     "$BUILD_DIR\compiled_res.zip"
 
@@ -40,22 +53,15 @@ $JAVA_FILES = Get-ChildItem -Path "$BUILD_DIR\gen", "android\app\src\main\java" 
 # 4. Dex bytecode with D8
 Write-Host ">>> Step 4: Converting to classes.dex with D8..." -ForegroundColor Yellow
 $CLASS_FILES = Get-ChildItem -Path "$BUILD_DIR\obj" -Filter "*.class" -Recurse | Select-Object -ExpandProperty FullName
-& $D8 --lib $PLATFORM --output "$BUILD_DIR" $CLASS_FILES
+& $D8 --min-api 24 --lib $PLATFORM --output "$BUILD_DIR" $CLASS_FILES
+
+if (-not (Test-Path "$BUILD_DIR\classes.dex")) {
+    throw "classes.dex generation failed! Aborting build."
+}
 
 # 5. Add classes.dex to APK
 Write-Host ">>> Step 5: Adding classes.dex to APK package..." -ForegroundColor Yellow
-Set-Location $BUILD_DIR
-# Using jar/tar or aapt to add classes.dex
-& $AAPT2 link -I $PLATFORM `
-    --manifest "d:\FullStack\UIUX\AndroidGame\android\app\src\main\AndroidManifest.xml" `
-    -o "unaligned_dex.apk" `
-    -A "d:\FullStack\UIUX\AndroidGame\android\app\src\main\assets" `
-    --auto-add-overlay `
-    "compiled_res.zip"
-
-# Add classes.dex into unaligned.apk using jar or zip
-& "D:\Node\jdk-27_windows-x64_bin\jdk-27\bin\jar.exe" -uf "unaligned.apk" "classes.dex"
-Set-Location "d:\FullStack\UIUX\AndroidGame"
+& "D:\Node\jdk-27_windows-x64_bin\jdk-27\bin\jar.exe" -uf "$BUILD_DIR\unaligned.apk" -C "$BUILD_DIR" "classes.dex"
 
 # 6. Zipalign APK
 Write-Host ">>> Step 6: Aligning APK with zipalign..." -ForegroundColor Yellow
@@ -68,6 +74,9 @@ Write-Host ">>> Step 7: Signing APK with apksigner..." -ForegroundColor Yellow
 # Verify APK
 Write-Host ">>> Step 8: Verifying signature..." -ForegroundColor Yellow
 & $APKSIGNER verify -v "MittiRun.apk"
+
+# Copy to web_playable so it can be downloaded directly from phone
+Copy-Item "MittiRun.apk" -Destination "web_playable\MittiRun.apk" -Force
 
 $apk = Get-Item "MittiRun.apk"
 Write-Host "`n=======================================================" -ForegroundColor Green
