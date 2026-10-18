@@ -29,12 +29,22 @@ const BASE_SPEED: float = 14.0
 const MAX_SPEED: float = 28.0
 const SPEED_INCREMENT: float = 0.003
 
-# Powerup active durations
+# Powerup active durations & Periodic Speed
 var magnet_timer: float = 0.0
 var shield_active: bool = false
 var boost_timer: float = 0.0
 var last_milestone_level: int = 0
 var milestone_surge_timer: float = 0.0
+var run_time: float = 0.0
+var speed_tier: int = 1
+var last_speed_tier: int = 1
+var current_level: int = 1
+var max_level_reached: int = 1
+var level_start_distance: float = 0.0
+var level_target_distance: float = 350.0
+
+signal speed_tier_updated(tier: int, kmh: float)
+signal level_completed(level: int, next_dest: String, reward: int)
 
 # Persistent data
 var save_data: Dictionary = {}
@@ -67,6 +77,43 @@ var CHARACTERS: Dictionary = {
 	}
 }
 
+# Maps & Environments Catalog
+var MAPS: Dictionary = {
+	"village": {
+		"name": "Bihar Village",
+		"short_name": "GAON",
+		"ground_color": Color(0.24, 0.4, 0.16),
+		"road_color": Color(0.48, 0.36, 0.26)
+	},
+	"bazaar": {
+		"name": "Haat Bazaar",
+		"short_name": "BAZAAR",
+		"ground_color": Color(0.3, 0.2, 0.18),
+		"road_color": Color(0.24, 0.21, 0.2)
+	},
+	"railway": {
+		"name": "Railway Junction",
+		"short_name": "PATNA JN",
+		"ground_color": Color(0.22, 0.28, 0.31),
+		"road_color": Color(0.13, 0.13, 0.13)
+	},
+	"highway": {
+		"name": "NH-31 Highway",
+		"short_name": "HIGHWAY",
+		"ground_color": Color(0.33, 0.42, 0.18),
+		"road_color": Color(0.1, 0.14, 0.15)
+	},
+	"tour": {
+		"name": "Grand Bihar Tour",
+		"short_name": "TOUR",
+		"ground_color": Color(0.24, 0.4, 0.16),
+		"road_color": Color(0.48, 0.36, 0.26)
+	}
+}
+
+var selected_map: String = "village"
+var current_biome: String = "village"
+
 const SaveManagerClass = preload("res://scripts/save_manager.gd")
 
 func _ready() -> void:
@@ -87,6 +134,19 @@ func _save_persistent_data() -> void:
 
 func _process(delta: float) -> void:
 	if current_state == GameState.PLAYING:
+		run_time += delta
+
+		# Check Destination Travel Progression (Level completion after travel target)
+		if current_distance >= level_target_distance:
+			complete_level()
+
+		var new_tier: int = int(run_time / 15.0) + 1
+		if new_tier > speed_tier:
+			speed_tier = new_tier
+			var kmh: float = (current_speed + (speed_tier - 1) * 1.1) * 3.6
+			speed_tier_updated.emit(speed_tier, kmh)
+			SoundManager.play_sfx("powerup")
+
 		# Check for 5,000 score milestones
 		var current_milestone: int = int(current_score / 5000)
 		if current_milestone > last_milestone_level:
@@ -104,9 +164,13 @@ func _process(delta: float) -> void:
 			milestone_mult = 1.25
 
 		var boost_mult = 1.6 if boost_timer > 0.0 else 1.0
+		var level_speed_bonus: float = float(current_level - 1) * 1.5
+		var tier_bonus: float = float(speed_tier - 1) * 1.1
+		var base_pace: float = min(BASE_SPEED + level_speed_bonus + tier_bonus + SPEED_INCREMENT * delta * 60.0, MAX_SPEED + float(current_level - 1) * 1.0)
+		current_speed = base_pace
+
 		var speed_mult = milestone_mult * boost_mult
 		var eff_speed = current_speed * speed_mult
-		current_speed = min(current_speed + SPEED_INCREMENT * delta * 60.0, MAX_SPEED)
 		
 		# Distance and score
 		current_distance += eff_speed * delta
@@ -126,6 +190,17 @@ func _process(delta: float) -> void:
 			if boost_timer <= 0.0:
 				powerup_ended.emit("boost")
 
+func complete_level() -> void:
+	current_level += 1
+	if current_level > max_level_reached:
+		max_level_reached = current_level
+	level_start_distance = current_distance
+	level_target_distance = current_distance + 400.0 + float(current_level) * 100.0
+	var reward: int = 50 + (current_level - 1) * 25
+	run_coins += reward
+	level_completed.emit(current_level - 1, "NEXT STAGE", reward)
+	SoundManager.play_sfx("powerup")
+
 func start_game() -> void:
 	current_score = 0
 	current_distance = 0.0
@@ -136,6 +211,12 @@ func start_game() -> void:
 	boost_timer = 0.0
 	last_milestone_level = 0
 	milestone_surge_timer = 0.0
+	run_time = 0.0
+	speed_tier = 1
+	last_speed_tier = 1
+	current_level = 1
+	level_start_distance = 0.0
+	level_target_distance = 350.0
 	
 	current_state = GameState.PLAYING
 	game_state_changed.emit(current_state)

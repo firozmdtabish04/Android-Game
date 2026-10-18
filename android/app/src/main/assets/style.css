@@ -264,6 +264,298 @@ body {
   }
 }
 
+.hud-stat.speed-box {
+  border-color: rgba(0, 229, 255, 0.6);
+  background: rgba(0, 229, 255, 0.12);
+}
+
+.hud-stat.speed-box .hud-value {
+  color: #00e5ff;
+}
+
+.hud-stat.level-box {
+  border-color: rgba(255, 179, 0, 0.7);
+  background: linear-gradient(135deg, rgba(255, 111, 0, 0.25), rgba(255, 193, 7, 0.25));
+  box-shadow: 0 0 12px rgba(255, 179, 0, 0.4);
+}
+
+.hud-stat.level-box .hud-value {
+  color: #ffd54f;
+  text-shadow: 0 0 8px rgba(255, 213, 79, 0.7);
+}
+
+#btn-hud-music.muted i {
+  opacity: 0.4;
+  color: #ef5350;
+}
+
+/* ---------------- DESTINATION TRAVEL PROGRESS BAR ---------------- */
+#hud-travel-bar {
+  width: 100%;
+  max-width: 520px;
+  margin: 8px auto 0 auto;
+  background: rgba(18, 10, 6, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 193, 7, 0.45);
+  border-radius: 12px;
+  padding: 6px 12px 8px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.travel-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.travel-badge {
+  background: #ff6f00;
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 2px 6px rgba(255, 111, 0, 0.5);
+}
+
+.travel-dest {
+  color: #ffe082;
+  font-size: 11px;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+.travel-pct {
+  color: #00e5ff;
+  font-weight: 900;
+}
+
+.travel-progress-track {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  overflow: visible;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.travel-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ff9800, #ffd600, #00e5ff);
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(255, 214, 0, 0.7);
+  transition: width 0.15s ease-out;
+}
+
+.travel-runner-pin {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: #ffeb3b;
+  color: #b71c1c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(255, 235, 59, 0.9);
+  transition: left 0.15s ease-out;
+}
+
+.travel-runner-pin i {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.5;
+}
+
+.travel-flag-goal {
+  position: absolute;
+  top: 50%;
+  right: -2px;
+  transform: translateY(-50%);
+  color: #ffd600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 4px rgba(255, 214, 0, 0.8));
+}
+
+/* Periodic Pace Level Up Banner */
+.pace-popup {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(1, 87, 155, 0.95), rgba(0, 150, 136, 0.95));
+  border: 2px solid #00e5ff;
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.8), 0 8px 32px rgba(0, 0, 0, 0.8);
+  border-radius: 18px;
+  padding: 12px 22px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 1000;
+  animation: paceBannerAnim 2.2s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.pace-popup.hidden {
+  display: none !important;
+}
+
+.pace-tag {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #80d8ff;
+}
+
+.pace-tier {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 2px 0;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+.pace-sub {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e0f7fa;
+  letter-spacing: 0.5px;
+}
+
+/* ---------------- DESTINATION REACHED / LEVEL COMPLETE BANNER ---------------- */
+.level-popup {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(46, 125, 50, 0.96), rgba(245, 127, 23, 0.96));
+  border: 3px solid #ffd54f;
+  box-shadow: 0 0 35px rgba(255, 213, 79, 0.9), 0 12px 40px rgba(0, 0, 0, 0.85);
+  border-radius: 24px;
+  padding: 16px 28px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 1005;
+  animation: levelPopupAnim 3.2s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.level-popup.hidden {
+  display: none !important;
+}
+
+.level-popup-trophy {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 215, 0, 0.25);
+  border: 2px solid #ffd54f;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 6px auto;
+  color: #fff9c4;
+  box-shadow: 0 0 15px rgba(255, 213, 79, 0.8);
+}
+
+.level-popup-tag {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff9c4;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.level-popup-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 4px 0;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.level-popup-reward {
+  display: inline-block;
+  background: rgba(0, 200, 83, 0.4);
+  border: 1px solid #00e676;
+  color: #b9f6ca;
+  padding: 4px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin: 4px 0 6px 0;
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.5);
+}
+
+.level-popup-next {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffecb3;
+  letter-spacing: 0.5px;
+}
+
+@keyframes levelPopupAnim {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20%) scale(0.6);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  22% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -70%) scale(0.85);
+  }
+}
+
+@keyframes paceBannerAnim {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20%) scale(0.7);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -70%) scale(0.8);
+  }
+}
+
 /* Hint */
 #touch-hint {
   align-self: center;
@@ -829,4 +1121,119 @@ svg.lucide,
 .screen-footer-credit strong {
   color: #ffa726;
   font-weight: 800;
+}
+
+/* ---------------- MAPS SCREEN & CARDS ---------------- */
+.maps-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.map-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 10px 14px;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.map-card.active {
+  border-color: #ff9800;
+  background: rgba(255, 152, 0, 0.15);
+}
+
+.map-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.map-village-bg {
+  background: linear-gradient(135deg, #2e7d32 0%, #558b2f 100%);
+}
+
+.map-bazaar-bg {
+  background: linear-gradient(135deg, #d84315 0%, #ff8f00 100%);
+}
+
+.map-railway-bg {
+  background: linear-gradient(135deg, #455a64 0%, #37474f 100%);
+}
+
+.map-highway-bg {
+  background: linear-gradient(135deg, #1565c0 0%, #00838f 100%);
+}
+
+.map-tour-bg {
+  background: linear-gradient(135deg, #6a1b9a 0%, #ad1457 100%);
+}
+
+.map-details {
+  flex: 1;
+}
+
+.map-details h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.map-details p {
+  font-size: 11px;
+  color: #b0bec5;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.map-tag {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 8px;
+  display: inline-block;
+  letter-spacing: 0.5px;
+}
+
+.map-tag.village {
+  background: rgba(76, 175, 80, 0.25);
+  color: #81c784;
+}
+
+.map-tag.bazaar {
+  background: rgba(255, 152, 0, 0.25);
+  color: #ffb74d;
+}
+
+.map-tag.railway {
+  background: rgba(144, 164, 174, 0.25);
+  color: #cfd8dc;
+}
+
+.map-tag.highway {
+  background: rgba(33, 150, 243, 0.25);
+  color: #64b5f6;
+}
+
+.map-tag.tour {
+  background: rgba(186, 104, 200, 0.25);
+  color: #ce93d8;
+}
+
+.hud-stat.map-box {
+  border-color: rgba(255, 179, 0, 0.6);
+  background: rgba(255, 179, 0, 0.12);
 }

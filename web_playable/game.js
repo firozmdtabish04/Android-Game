@@ -19,20 +19,197 @@ const SLIDE_DURATION = 0.75;
 const CHUNK_LENGTH = 35.0;
 const TOTAL_CHUNKS = 7;
 
-// ---------------- SOUND SYSTEM (WEB AUDIO API) ----------------
+// ---------------- SOUND & BACKGROUND INSTRUMENTAL MUSIC SYSTEM (WEB AUDIO API) ----------------
 class DesiAudioManager {
   constructor() {
     this.ctx = null;
     this.enabled = true;
+    this.musicEnabled = true;
+    this.bgmPlaying = false;
+    this.bgmTempo = 118; // Desi running folk tempo (BPM)
+    this.bgmStep = 0;
+    this.bgmTimer = null;
+    this.bgmNextNoteTime = 0.0;
+    this.bgmMasterGain = null;
   }
 
   init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) this.ctx = new AudioCtx();
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+        this.bgmMasterGain = this.ctx.createGain();
+        this.bgmMasterGain.gain.setValueAtTime(0.24, this.ctx.currentTime);
+        this.bgmMasterGain.connect(this.ctx.destination);
+      }
     }
     if (this.ctx && this.ctx.state === "suspended") {
       this.ctx.resume();
+    }
+  }
+
+  startBGM() {
+    if (!this.musicEnabled) return;
+    this.init();
+    if (!this.ctx) return;
+    if (this.bgmPlaying) return;
+
+    this.bgmPlaying = true;
+    this.bgmStep = 0;
+    this.bgmNextNoteTime = this.ctx.currentTime + 0.05;
+
+    if (this.bgmTimer) clearInterval(this.bgmTimer);
+    this.bgmTimer = setInterval(() => this.scheduleBGM(), 25);
+  }
+
+  stopBGM() {
+    this.bgmPlaying = false;
+    if (this.bgmTimer) {
+      clearInterval(this.bgmTimer);
+      this.bgmTimer = null;
+    }
+  }
+
+  toggleMusic() {
+    this.musicEnabled = !this.musicEnabled;
+    if (!this.musicEnabled) {
+      this.stopBGM();
+    } else {
+      this.startBGM();
+    }
+    return this.musicEnabled;
+  }
+
+  setBGMTempo(bpm) {
+    this.bgmTempo = Math.max(105, Math.min(155, bpm));
+  }
+
+  scheduleBGM() {
+    if (!this.bgmPlaying || !this.ctx || !this.musicEnabled) return;
+
+    const secondsPer16th = 60.0 / this.bgmTempo / 4.0;
+    while (this.bgmNextNoteTime < this.ctx.currentTime + 0.12) {
+      this.playBGMStep(this.bgmStep, this.bgmNextNoteTime);
+      this.bgmStep = (this.bgmStep + 1) % 32;
+      this.bgmNextNoteTime += secondsPer16th;
+    }
+  }
+
+  playBGMStep(step, time) {
+    if (!this.bgmMasterGain || !this.ctx) return;
+
+    // --- 1. DHOLAK & TABLA FOLK PERCUSSION GROOVE ---
+    // Resonant Bass Dholak "DHUM" (steps 0, 8, 16, 24)
+    if (step % 8 === 0) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(120, time);
+      osc.frequency.exponentialRampToValueAtTime(45, time + 0.12);
+      gain.gain.setValueAtTime(0.42, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
+      osc.connect(gain);
+      gain.connect(this.bgmMasterGain);
+      osc.start(time);
+      osc.stop(time + 0.14);
+    }
+    // Dholak secondary open tap "GE" (syncopated steps 2, 10, 18, 26)
+    else if (step % 8 === 2) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(85, time);
+      osc.frequency.exponentialRampToValueAtTime(52, time + 0.08);
+      gain.gain.setValueAtTime(0.25, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+      osc.connect(gain);
+      gain.connect(this.bgmMasterGain);
+      osc.start(time);
+      osc.stop(time + 0.08);
+    }
+
+    // High Rim Slap "TAK / TIN" (steps 4, 12, 20, 28)
+    if (step % 8 === 4) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(920, time);
+      osc.frequency.exponentialRampToValueAtTime(320, time + 0.04);
+      gain.gain.setValueAtTime(0.26, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+      osc.connect(gain);
+      gain.connect(this.bgmMasterGain);
+      osc.start(time);
+      osc.stop(time + 0.05);
+    }
+    // Subtle double tap rim on step 6 & 14
+    else if (step % 4 === 2) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(620, time);
+      gain.gain.setValueAtTime(0.12, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.035);
+      osc.connect(gain);
+      gain.connect(this.bgmMasterGain);
+      osc.start(time);
+      osc.stop(time + 0.035);
+    }
+
+    // --- 2. HARMONIUM & TANPURA DRONE BACKING ---
+    // Warm tonic backing drone (Sa - Pa / C3 130.81Hz + G3 196.00Hz)
+    if (step % 8 === 0) {
+      const droneNotes = step < 16 ? [130.81, 196.0] : [130.81, 220.0];
+      droneNotes.forEach((freq) => {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(freq, time);
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(320, time);
+        gain.gain.setValueAtTime(0.08, time);
+        gain.gain.linearRampToValueAtTime(0.08, time + 0.32);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.42);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.bgmMasterGain);
+        osc.start(time);
+        osc.stop(time + 0.42);
+      });
+    }
+
+    // --- 3. BANSURI FLUTE & SITAR DESI FOLK MELODY ---
+    // Catchy 32-step running folk melody
+    const melodySeq = [
+      523.25, 0, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25,
+      440.0, 523.25, 587.33, 0, 659.25, 587.33, 523.25, 0,
+      659.25, 783.99, 880.0, 783.99, 659.25, 0, 587.33, 659.25,
+      523.25, 440.0, 523.25, 587.33, 523.25, 0, 0, 0,
+    ];
+    const freq = melodySeq[step];
+    if (freq && freq > 0) {
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      osc.type = "triangle";
+      // Gentle slide (meend) into the note for authentic Indian flute feel
+      osc.frequency.setValueAtTime(freq * 0.95, time);
+      osc.frequency.exponentialRampToValueAtTime(freq, time + 0.025);
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(1600, time);
+
+      gain.gain.setValueAtTime(0.0, time);
+      gain.gain.linearRampToValueAtTime(0.18, time + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.bgmMasterGain);
+      osc.start(time);
+      osc.stop(time + 0.18);
     }
   }
 
@@ -147,7 +324,7 @@ class DesiAudioManager {
   playSurge() {
     if (!this.enabled || !this.ctx) return;
     const now = this.ctx.currentTime;
-    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, idx) => {
+    [523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       const t = now + idx * 0.08;
@@ -161,6 +338,43 @@ class DesiAudioManager {
       osc.stop(t + 0.18);
     });
   }
+
+  playPaceUp() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + idx * 0.07;
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.14);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.14);
+    });
+  }
+
+  playLevelComplete() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    // Celebratory ascending royal chime fanfare
+    [392.0, 523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + idx * 0.07;
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.24, t);
+      gain.gain.exponentialRampToValueAtTime(0.005, t + 0.35);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.35);
+    });
+  }
 }
 
 // ---------------- CHARACTER DEFINITIONS ----------------
@@ -170,27 +384,42 @@ const CHARACTERS = {
     tagline: "The Village Sprinter",
     cost: 0,
     unlocked: true,
-    kurtaColor: 0xe65100, // Terracotta Saffron
-    dhotiColor: 0xf5f5f0, // White Dhoti
-    gamchhaColor: 0xb71c1c, // Red checked Gamchha
+    kurtaColor: 0xe65100, // Terracotta Saffron Kurta
+    dhotiColor: 0xf5f5f0, // Pure White Dhoti
+    gamchhaColor: 0xb71c1c, // Authentic Bihari Red Gamchha
+    skinColor: 0xc88556, // Warm bronze desi skin tone
+    shoesColor: 0x4e342e, // Rustic leather Mojari
+    headStyle: "gamchha_knot", // Folded Bihari Gamchha head wrap with knot & tail
+    hasMoustache: true,
+    hasSunglasses: false,
   },
   akhil: {
     name: "Akhil",
     tagline: "The Auto Rickshaw Rider",
     cost: 150,
     unlocked: false,
-    kurtaColor: 0x2e7d32, // Auto Rickshaw Green
-    dhotiColor: 0xffd54f, // Yellow Dhoti
-    gamchhaColor: 0xff9800, // Orange Gamchha
+    kurtaColor: 0x2e7d32, // Auto Rickshaw Green Kurta
+    dhotiColor: 0xffd54f, // Marigold Yellow Dhoti
+    gamchhaColor: 0xff9800, // Vibrant Orange Gamchha
+    skinColor: 0xb77242, // Sun-tanned skin tone
+    shoesColor: 0x212121, // Black runners with athletic sole
+    headStyle: "sport_band", // Athletic headband & sunglasses
+    hasMoustache: true,
+    hasSunglasses: true, // Cool dark aviator sunglasses
   },
   firoz: {
     name: "Firoz",
     tagline: "The Fast Runner",
     cost: 300,
     unlocked: false,
-    kurtaColor: 0xad1457, // Vibrant Desi Magenta
-    dhotiColor: 0x1976d2, // Blue Dhoti
-    gamchhaColor: 0xffeb3b, // Golden Yellow Scarf
+    kurtaColor: 0x880e4f, // Royal Deep Maroon Kurta
+    dhotiColor: 0x1565c0, // Royal Blue Pleated Dhoti
+    gamchhaColor: 0xffd700, // Golden Yellow Zari Dupatta
+    skinColor: 0xd79669, // Fair radiant skin tone
+    shoesColor: 0x6d4c41, // Pointed embroidered Mojari
+    headStyle: "royal_pagdi", // Grand Bihari royal Pagdi with kalgi & emerald
+    hasMoustache: true,
+    hasSunglasses: false,
   },
 };
 
@@ -263,6 +492,64 @@ const MAPS = {
   },
 };
 
+// ---------------- DESTINATION LEVEL PROGRESSION ----------------
+const LEVELS = [
+  {
+    level: 1,
+    name: "Bihar Village Outskirts",
+    shortName: "GAON",
+    subtitle: "Mitti Tracks & Mustard Fields",
+    mapId: "village",
+    targetDistance: 350,
+    coinReward: 50,
+  },
+  {
+    level: 2,
+    name: "Haat Bazaar Mandi",
+    shortName: "BAZAAR",
+    subtitle: "Village Market & Awnings",
+    mapId: "bazaar",
+    targetDistance: 750,
+    coinReward: 75,
+  },
+  {
+    level: 3,
+    name: "Patna Junction Freight Yard",
+    shortName: "PATNA JN",
+    subtitle: "Platforms & Freight Tracks",
+    mapId: "railway",
+    targetDistance: 1250,
+    coinReward: 100,
+  },
+  {
+    level: 4,
+    name: "NH-31 Expressway Bypass",
+    shortName: "HIGHWAY",
+    subtitle: "Grand Trunk Highway & Dhabas",
+    mapId: "highway",
+    targetDistance: 1850,
+    coinReward: 150,
+  },
+  {
+    level: 5,
+    name: "Rajgir Heritage Valley",
+    shortName: "RAJGIR",
+    subtitle: "Ancient Hills & Historic Trail",
+    mapId: "village",
+    targetDistance: 2550,
+    coinReward: 200,
+  },
+  {
+    level: 6,
+    name: "Grand Bihar Champions Tour",
+    shortName: "CHAMPIONS",
+    subtitle: "High-Speed Dynamic Biome Rotation",
+    mapId: "tour",
+    targetDistance: 3350,
+    coinReward: 250,
+  },
+];
+
 // ---------------- MAIN GAME CLASS ----------------
 class MittiRunGame {
   constructor() {
@@ -278,6 +565,13 @@ class MittiRunGame {
     this.currentLane = 1; // 0: Left, 1: Center, 2: Right
     this.targetX = LANES[1];
 
+    // Destination Level Progression
+    this.currentLevel = 1;
+    this.maxLevelReached = 1;
+    this.levelStartDist = 0;
+    this.levelTargetDist = 350;
+    this.confettiParticles = [];
+
     // Map & Biome state
     this.selectedMap = "village";
     this.currentBiome = "village";
@@ -291,12 +585,16 @@ class MittiRunGame {
     this.isSliding = false;
     this.slideTimer = 0;
 
-    // Power-ups & Speed Milestones
+    // Power-ups & Speed Milestones & Periodic Acceleration
     this.magnetTimer = 0;
     this.boostTimer = 0;
     this.shieldActive = false;
     this.lastMilestoneLevel = 0;
     this.milestoneSurgeTimer = 0.0;
+    this.runTime = 0.0;
+    this.speedTier = 1;
+    this.lastSpeedTier = 1;
+    this.displaySpeed = BASE_SPEED * 3.6;
 
     // Persistent storage
     this.loadSaveData();
@@ -307,11 +605,16 @@ class MittiRunGame {
     this.renderer = null;
     this.clock = new THREE.Clock();
 
-    // Scene groups
+    // Scene groups & Realistic Player Rig
     this.playerGroup = null;
     this.playerMesh = null;
     this.playerMaterials = {};
     this.shieldMesh = null;
+    this.legL = null;
+    this.legR = null;
+    this.armL = null;
+    this.armR = null;
+    this.gamchhaTail = null;
     this.dustParticles = [];
 
     // Track chunks and entities
@@ -332,6 +635,7 @@ class MittiRunGame {
     this.initThree();
     this.initPlayer();
     this.initDust();
+    this.initConfetti();
     this.initInitialTrack();
     this.bindEvents();
     this.updateMenuUI();
@@ -347,6 +651,7 @@ class MittiRunGame {
       const data = JSON.parse(localStorage.getItem("mitti_run_save") || "{}");
       this.highScore = data.highScore || 0;
       this.totalCoins = data.totalCoins || 0;
+      this.maxLevelReached = data.maxLevelReached || 1;
       const rawChar = (data.selectedCharacter || "tabish").toLowerCase();
       this.selectedCharacter = CHARACTERS[rawChar] ? rawChar : "tabish";
       const unlocked = (data.unlockedCharacters || ["tabish"]).map(id => String(id).toLowerCase());
@@ -357,9 +662,13 @@ class MittiRunGame {
       if (typeof data.soundEnabled === "boolean") {
         this.audio.enabled = data.soundEnabled;
       }
+      if (typeof data.musicEnabled === "boolean") {
+        this.audio.musicEnabled = data.musicEnabled;
+      }
     } catch (e) {
       this.highScore = 0;
       this.totalCoins = 0;
+      this.maxLevelReached = 1;
       this.selectedCharacter = "tabish";
     }
     try {
@@ -378,10 +687,12 @@ class MittiRunGame {
       const data = {
         highScore: this.highScore,
         totalCoins: this.totalCoins,
+        maxLevelReached: this.maxLevelReached,
         selectedCharacter: this.selectedCharacter,
         selectedMap: this.selectedMap,
         unlockedCharacters: unlocked,
         soundEnabled: this.audio.enabled,
+        musicEnabled: this.audio.musicEnabled,
       };
       localStorage.setItem("mitti_run_save", JSON.stringify(data));
     } catch (e) {
@@ -441,77 +752,13 @@ class MittiRunGame {
     this.sunDisk = sunDisk;
   }
 
-  // ---------------- PLAYER CHARACTER (Tabish Firoz) ----------------
+  // ---------------- REALISTIC PLAYER CHARACTER RIG (Tabish, Akhil, Firoz) ----------------
   initPlayer() {
     this.playerGroup = new THREE.Group();
     this.playerGroup.position.set(0, 0, 0);
 
-    const charInfo = CHARACTERS[this.selectedCharacter];
-
-    // Materials
-    this.playerMaterials.skin = new THREE.MeshLambertMaterial({
-      color: 0xc98a58,
-    });
-    this.playerMaterials.kurta = new THREE.MeshLambertMaterial({
-      color: charInfo.kurtaColor,
-    });
-    this.playerMaterials.dhoti = new THREE.MeshLambertMaterial({
-      color: charInfo.dhotiColor,
-    });
-    this.playerMaterials.gamchha = new THREE.MeshLambertMaterial({
-      color: charInfo.gamchhaColor,
-    });
-
-    // Hierarchy
+    // Player Mesh Root
     this.playerMesh = new THREE.Group();
-
-    // Head
-    const headGeo = new THREE.SphereGeometry(0.28, 16, 16);
-    const head = new THREE.Mesh(headGeo, this.playerMaterials.skin);
-    head.position.y = 1.55;
-    head.castShadow = true;
-    this.playerMesh.add(head);
-
-    // Desi Pagdi / Hair band
-    const bandGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.08, 16);
-    const bandMat = new THREE.MeshLambertMaterial({ color: 0xb71c1c });
-    const band = new THREE.Mesh(bandGeo, bandMat);
-    band.position.y = 1.62;
-    this.playerMesh.add(band);
-
-    // Torso (Kurta)
-    const bodyGeo = new THREE.BoxGeometry(0.65, 0.75, 0.38);
-    const body = new THREE.Mesh(bodyGeo, this.playerMaterials.kurta);
-    body.position.y = 0.98;
-    body.castShadow = true;
-    this.playerMesh.add(body);
-
-    // Desi Gamchha Scarf (slanted across shoulder)
-    const scarfGeo = new THREE.BoxGeometry(0.18, 0.78, 0.42);
-    const scarf = new THREE.Mesh(scarfGeo, this.playerMaterials.gamchha);
-    scarf.position.set(-0.2, 0.98, 0.02);
-    scarf.rotation.z = -0.15;
-    this.playerMesh.add(scarf);
-    this.gamchhaMesh = scarf;
-
-    // Legs / Dhoti
-    const dhotiGeo = new THREE.BoxGeometry(0.55, 0.65, 0.34);
-    const dhoti = new THREE.Mesh(dhotiGeo, this.playerMaterials.dhoti);
-    dhoti.position.y = 0.38;
-    dhoti.castShadow = true;
-    this.playerMesh.add(dhoti);
-
-    // Limbs for running animation
-    const limbGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.5, 8);
-    const legL = new THREE.Mesh(limbGeo, this.playerMaterials.skin);
-    legL.position.set(-0.16, 0.15, 0);
-    const legR = new THREE.Mesh(limbGeo, this.playerMaterials.skin);
-    legR.position.set(0.16, 0.15, 0);
-    this.playerMesh.add(legL);
-    this.playerMesh.add(legR);
-    this.legL = legL;
-    this.legR = legR;
-
     this.playerGroup.add(this.playerMesh);
 
     // Suraksha Shield Bubble (invisible by default)
@@ -528,16 +775,477 @@ class MittiRunGame {
     this.playerGroup.add(this.shieldMesh);
 
     this.scene.add(this.playerGroup);
+
+    // Build the realistic 3D model
+    this.rebuildPlayerMesh();
+  }
+
+  rebuildPlayerMesh() {
+    if (!this.playerMesh) return;
+
+    // Clear existing character hierarchy
+    while (this.playerMesh.children.length > 0) {
+      const child = this.playerMesh.children[0];
+      this.playerMesh.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m) => m.dispose());
+        } else {
+          child.material.dispose();
+        }
+      }
+    }
+
+    const charInfo = CHARACTERS[this.selectedCharacter] || CHARACTERS.tabish;
+
+    // Materials
+    const skinMat = new THREE.MeshLambertMaterial({
+      color: charInfo.skinColor || 0xc88556,
+    });
+    const kurtaMat = new THREE.MeshLambertMaterial({
+      color: charInfo.kurtaColor,
+    });
+    const dhotiMat = new THREE.MeshLambertMaterial({
+      color: charInfo.dhotiColor,
+    });
+    const gamchhaMat = new THREE.MeshLambertMaterial({
+      color: charInfo.gamchhaColor,
+    });
+    const hairMat = new THREE.MeshLambertMaterial({
+      color: 0x181818,
+    });
+    const shoesMat = new THREE.MeshLambertMaterial({
+      color: charInfo.shoesColor || 0x4e342e,
+    });
+    const goldMat = new THREE.MeshStandardMaterial({
+      color: 0xffd700,
+      metalness: 0.8,
+      roughness: 0.25,
+    });
+    const eyeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const pupilMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+
+    this.playerMaterials = {
+      skin: skinMat,
+      kurta: kurtaMat,
+      dhoti: dhotiMat,
+      gamchha: gamchhaMat,
+      shoes: shoesMat,
+    };
+
+    // 1. HEAD & EXPRESIVE FACIAL FEATURES
+    const headGroup = new THREE.Group();
+
+    // Neck
+    const neckGeo = new THREE.CylinderGeometry(0.1, 0.115, 0.16, 12);
+    const neck = new THREE.Mesh(neckGeo, skinMat);
+    neck.position.y = 1.38;
+    neck.castShadow = true;
+    headGroup.add(neck);
+
+    // Nehru / Mandarin Collar
+    const collarGeo = new THREE.CylinderGeometry(0.125, 0.13, 0.08, 14);
+    const collar = new THREE.Mesh(collarGeo, kurtaMat);
+    collar.position.y = 1.35;
+    headGroup.add(collar);
+
+    // Cranium
+    const headGeo = new THREE.SphereGeometry(0.24, 18, 16);
+    const head = new THREE.Mesh(headGeo, skinMat);
+    head.position.set(0, 1.58, -0.02);
+    head.castShadow = true;
+    headGroup.add(head);
+
+    // Styled Hair Cap
+    const hairGeo = new THREE.SphereGeometry(
+      0.246,
+      14,
+      14,
+      0,
+      Math.PI * 2,
+      0,
+      Math.PI * 0.52,
+    );
+    const hair = new THREE.Mesh(hairGeo, hairMat);
+    hair.position.set(0, 1.6, -0.015);
+    hair.rotation.x = -0.15;
+    headGroup.add(hair);
+
+    // Sideburns
+    const sbGeo = new THREE.BoxGeometry(0.03, 0.1, 0.06);
+    const sbL = new THREE.Mesh(sbGeo, hairMat);
+    sbL.position.set(-0.23, 1.55, -0.04);
+    const sbR = new THREE.Mesh(sbGeo, hairMat);
+    sbR.position.set(0.23, 1.55, -0.04);
+    headGroup.add(sbL);
+    headGroup.add(sbR);
+
+    // Back Hair Volume
+    const backHairGeo = new THREE.BoxGeometry(0.26, 0.18, 0.12);
+    const backHair = new THREE.Mesh(backHairGeo, hairMat);
+    backHair.position.set(0, 1.52, 0.12);
+    headGroup.add(backHair);
+
+    // 3D Nose (Facing forward towards -Z)
+    const noseGeo = new THREE.ConeGeometry(0.04, 0.09, 8);
+    const nose = new THREE.Mesh(noseGeo, skinMat);
+    nose.position.set(0, 1.57, -0.25);
+    nose.rotation.x = -Math.PI / 2;
+    headGroup.add(nose);
+
+    // Detailed Eyes & Dark Pupils
+    const eyeGeo = new THREE.BoxGeometry(0.05, 0.032, 0.02);
+    const pupilGeo = new THREE.BoxGeometry(0.024, 0.024, 0.024);
+
+    const eyeL = new THREE.Mesh(eyeGeo, eyeWhiteMat);
+    eyeL.position.set(-0.08, 1.61, -0.23);
+    const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
+    pupilL.position.set(-0.08, 1.61, -0.245);
+
+    const eyeR = new THREE.Mesh(eyeGeo, eyeWhiteMat);
+    eyeR.position.set(0.08, 1.61, -0.23);
+    const pupilR = new THREE.Mesh(pupilGeo, pupilMat);
+    pupilR.position.set(0.08, 1.61, -0.245);
+
+    headGroup.add(eyeL);
+    headGroup.add(pupilL);
+    headGroup.add(eyeR);
+    headGroup.add(pupilR);
+
+    // Athletic Eyebrows
+    const browGeo = new THREE.BoxGeometry(0.075, 0.02, 0.02);
+    const browL = new THREE.Mesh(browGeo, hairMat);
+    browL.position.set(-0.08, 1.65, -0.235);
+    browL.rotation.z = 0.08;
+    const browR = new THREE.Mesh(browGeo, hairMat);
+    browR.position.set(0.08, 1.65, -0.235);
+    browR.rotation.z = -0.08;
+    headGroup.add(browL);
+    headGroup.add(browR);
+
+    // Authentic Bihari Moustache
+    if (charInfo.hasMoustache) {
+      const stachePartGeo = new THREE.BoxGeometry(0.08, 0.03, 0.03);
+      const stacheL = new THREE.Mesh(stachePartGeo, hairMat);
+      stacheL.position.set(-0.055, 1.515, -0.242);
+      stacheL.rotation.z = -0.15;
+      const stacheR = new THREE.Mesh(stachePartGeo, hairMat);
+      stacheR.position.set(0.055, 1.515, -0.242);
+      stacheR.rotation.z = 0.15;
+      const stacheCenter = new THREE.Mesh(
+        new THREE.BoxGeometry(0.035, 0.03, 0.03),
+        hairMat,
+      );
+      stacheCenter.position.set(0, 1.52, -0.245);
+      headGroup.add(stacheL);
+      headGroup.add(stacheR);
+      headGroup.add(stacheCenter);
+    }
+
+    // Character Distinct Headgear & Accessories
+    if (charInfo.headStyle === "gamchha_knot") {
+      // Tabish: Bihari Gamchha head wrap with tied knot & tail
+      const wrapGeo = new THREE.CylinderGeometry(0.265, 0.265, 0.1, 16);
+      const wrap = new THREE.Mesh(wrapGeo, gamchhaMat);
+      wrap.position.set(0, 1.64, -0.015);
+      wrap.rotation.z = 0.05;
+      headGroup.add(wrap);
+
+      // Knot bun on side
+      const knotGeo = new THREE.SphereGeometry(0.08, 10, 10);
+      const knot = new THREE.Mesh(knotGeo, gamchhaMat);
+      knot.position.set(0.23, 1.68, 0.05);
+      headGroup.add(knot);
+
+      // Hanging knot tail
+      const tailGeo = new THREE.BoxGeometry(0.07, 0.22, 0.03);
+      const knotTail = new THREE.Mesh(tailGeo, gamchhaMat);
+      knotTail.position.set(0.25, 1.54, 0.06);
+      knotTail.rotation.z = -0.2;
+      headGroup.add(knotTail);
+    } else if (charInfo.headStyle === "sport_band") {
+      // Akhil: Athletic headband + Aviator shades
+      const bandGeo = new THREE.CylinderGeometry(0.26, 0.26, 0.08, 16);
+      const band = new THREE.Mesh(bandGeo, gamchhaMat);
+      band.position.set(0, 1.65, -0.015);
+      headGroup.add(band);
+
+      if (charInfo.hasSunglasses) {
+        const shadesMat = new THREE.MeshBasicMaterial({ color: 0x11161b });
+        const frameMat = new THREE.MeshStandardMaterial({
+          color: 0xd4af37,
+          metalness: 0.9,
+          roughness: 0.2,
+        });
+        // Bridge
+        const bridge = new THREE.Mesh(
+          new THREE.BoxGeometry(0.05, 0.015, 0.02),
+          frameMat,
+        );
+        bridge.position.set(0, 1.61, -0.255);
+        // Lens L & R
+        const lensGeo = new THREE.BoxGeometry(0.075, 0.045, 0.02);
+        const lensL = new THREE.Mesh(lensGeo, shadesMat);
+        lensL.position.set(-0.075, 1.605, -0.255);
+        const lensR = new THREE.Mesh(lensGeo, shadesMat);
+        lensR.position.set(0.075, 1.605, -0.255);
+        // Temples
+        const templeGeo = new THREE.BoxGeometry(0.015, 0.015, 0.24);
+        const templeL = new THREE.Mesh(templeGeo, frameMat);
+        templeL.position.set(-0.21, 1.61, -0.13);
+        const templeR = new THREE.Mesh(templeGeo, frameMat);
+        templeR.position.set(0.21, 1.61, -0.13);
+
+        headGroup.add(bridge);
+        headGroup.add(lensL);
+        headGroup.add(lensR);
+        headGroup.add(templeL);
+        headGroup.add(templeR);
+      }
+    } else if (charInfo.headStyle === "royal_pagdi") {
+      // Firoz: Regal Royal Pagdi with pleated folds, gold trim, kalgi plume & emerald jewel
+      const pagdiGeo = new THREE.SphereGeometry(0.28, 16, 14);
+      const pagdi = new THREE.Mesh(pagdiGeo, gamchhaMat);
+      pagdi.position.set(0, 1.7, -0.01);
+      headGroup.add(pagdi);
+
+      // Gold pleated rim
+      const rimGeo = new THREE.TorusGeometry(0.26, 0.05, 8, 20);
+      const rim = new THREE.Mesh(rimGeo, goldMat);
+      rim.position.set(0, 1.66, -0.01);
+      rim.rotation.x = Math.PI / 2;
+      headGroup.add(rim);
+
+      // Kalgi crest
+      const kalgiGeo = new THREE.ConeGeometry(0.08, 0.24, 8);
+      const kalgi = new THREE.Mesh(kalgiGeo, gamchhaMat);
+      kalgi.position.set(0, 1.94, -0.16);
+      kalgi.rotation.x = 0.25;
+      headGroup.add(kalgi);
+
+      // Emerald royal gem
+      const gemGeo = new THREE.SphereGeometry(0.04, 8, 8);
+      const gemMat = new THREE.MeshBasicMaterial({ color: 0x00e676 });
+      const gem = new THREE.Mesh(gemGeo, gemMat);
+      gem.position.set(0, 1.76, -0.26);
+      headGroup.add(gem);
+    }
+
+    this.playerMesh.add(headGroup);
+
+    // 2. TORSO (Tailored Kurta & Draped Gamchha)
+    const torsoGroup = new THREE.Group();
+
+    // Chest (Upper Kurta)
+    const chestGeo = new THREE.BoxGeometry(0.6, 0.44, 0.32);
+    const chest = new THREE.Mesh(chestGeo, kurtaMat);
+    chest.position.set(0, 1.1, 0);
+    chest.castShadow = true;
+    torsoGroup.add(chest);
+
+    // Waist / Lower Kurta
+    const waistGeo = new THREE.BoxGeometry(0.56, 0.36, 0.3);
+    const waist = new THREE.Mesh(waistGeo, kurtaMat);
+    waist.position.set(0, 0.76, 0);
+    waist.castShadow = true;
+    torsoGroup.add(waist);
+
+    // Button Placket down the front chest
+    const placketGeo = new THREE.BoxGeometry(0.06, 0.34, 0.02);
+    const placketMat = new THREE.MeshLambertMaterial({
+      color: charInfo.kurtaColor,
+    });
+    const placket = new THREE.Mesh(placketGeo, placketMat);
+    placket.position.set(0, 1.12, -0.165);
+    torsoGroup.add(placket);
+
+    // 3 Golden Kurta Buttons
+    const btnGeo = new THREE.SphereGeometry(0.016, 6, 6);
+    [-0.08, 0, 0.08].forEach((offsetY) => {
+      const b = new THREE.Mesh(btnGeo, goldMat);
+      b.position.set(0, 1.12 + offsetY, -0.176);
+      torsoGroup.add(b);
+    });
+
+    // Desi Gamchha Scarf across shoulder
+    const scarfGeo = new THREE.BoxGeometry(0.18, 0.68, 0.35);
+    const scarf = new THREE.Mesh(scarfGeo, gamchhaMat);
+    scarf.position.set(-0.16, 1.05, 0.01);
+    scarf.rotation.z = -0.2;
+    torsoGroup.add(scarf);
+    this.gamchhaMesh = scarf;
+
+    // Animated Fluttering Gamchha Tail trailing behind
+    const tailPivot = new THREE.Group();
+    tailPivot.position.set(-0.2, 1.18, 0.16);
+    const tailGeo = new THREE.BoxGeometry(0.14, 0.46, 0.03);
+    const tailMesh = new THREE.Mesh(tailGeo, gamchhaMat);
+    tailMesh.position.set(0, -0.23, 0);
+    tailMesh.castShadow = true;
+    tailPivot.add(tailMesh);
+    torsoGroup.add(tailPivot);
+    this.gamchhaTail = tailPivot;
+
+    this.playerMesh.add(torsoGroup);
+
+    // 3. DUAL ARTICULATED ARMS (Running gait swing)
+    const armGeoUpper = new THREE.CylinderGeometry(0.085, 0.075, 0.28, 10);
+    const armGeoForearm = new THREE.CylinderGeometry(0.07, 0.06, 0.26, 10);
+    const fistGeo = new THREE.BoxGeometry(0.085, 0.09, 0.09);
+
+    // Left Arm
+    const armL = new THREE.Group();
+    armL.position.set(-0.35, 1.25, 0);
+
+    const sleeveL = new THREE.Mesh(armGeoUpper, kurtaMat);
+    sleeveL.position.set(0, -0.14, 0);
+    sleeveL.castShadow = true;
+    armL.add(sleeveL);
+
+    const foreArmL = new THREE.Mesh(armGeoForearm, skinMat);
+    foreArmL.position.set(0, -0.38, 0.02);
+    foreArmL.rotation.x = -0.25;
+    foreArmL.castShadow = true;
+    armL.add(foreArmL);
+
+    const fistL = new THREE.Mesh(fistGeo, skinMat);
+    fistL.position.set(0, -0.52, 0.06);
+    armL.add(fistL);
+
+    if (charInfo.name === "Akhil") {
+      // Sport watch on left wrist
+      const watch = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.076, 0.076, 0.04, 10),
+        new THREE.MeshLambertMaterial({ color: 0x212121 }),
+      );
+      watch.position.set(0, -0.44, 0.04);
+      armL.add(watch);
+    }
+
+    this.playerMesh.add(armL);
+    this.armL = armL;
+
+    // Right Arm
+    const armR = new THREE.Group();
+    armR.position.set(0.35, 1.25, 0);
+
+    const sleeveR = new THREE.Mesh(armGeoUpper, kurtaMat);
+    sleeveR.position.set(0, -0.14, 0);
+    sleeveR.castShadow = true;
+    armR.add(sleeveR);
+
+    const foreArmR = new THREE.Mesh(armGeoForearm, skinMat);
+    foreArmR.position.set(0, -0.38, 0.02);
+    foreArmR.rotation.x = -0.25;
+    foreArmR.castShadow = true;
+    armR.add(foreArmR);
+
+    const fistR = new THREE.Mesh(fistGeo, skinMat);
+    fistR.position.set(0, -0.52, 0.06);
+    armR.add(fistR);
+
+    this.playerMesh.add(armR);
+    this.armR = armR;
+
+    // 4. LOWER BODY & LEGS (Pleated Dhoti & Desi Mojari Footwear)
+    const pelvisGeo = new THREE.BoxGeometry(0.54, 0.34, 0.32);
+    const pelvis = new THREE.Mesh(pelvisGeo, dhotiMat);
+    pelvis.position.set(0, 0.52, 0);
+    pelvis.castShadow = true;
+    this.playerMesh.add(pelvis);
+
+    // Kashta central pleat fold
+    const kashtaGeo = new THREE.BoxGeometry(0.14, 0.36, 0.05);
+    const kashta = new THREE.Mesh(kashtaGeo, dhotiMat);
+    kashta.position.set(0, 0.48, -0.16);
+    this.playerMesh.add(kashta);
+
+    // Left Leg
+    const legL = new THREE.Group();
+    legL.position.set(-0.16, 0.44, 0);
+
+    const thighL = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.11, 0.09, 0.32, 10),
+      dhotiMat,
+    );
+    thighL.position.set(0, -0.16, 0);
+    thighL.castShadow = true;
+    legL.add(thighL);
+
+    const calfL = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.07, 0.26, 10),
+      skinMat,
+    );
+    calfL.position.set(0, -0.36, 0);
+    calfL.castShadow = true;
+    legL.add(calfL);
+
+    // Mojari Footwear L
+    const shoeL = new THREE.Mesh(
+      new THREE.BoxGeometry(0.13, 0.09, 0.24),
+      shoesMat,
+    );
+    shoeL.position.set(0, -0.49, -0.04);
+    shoeL.castShadow = true;
+    legL.add(shoeL);
+
+    // Upturned curled toe tip
+    const toeL = new THREE.Mesh(
+      new THREE.ConeGeometry(0.055, 0.09, 6),
+      shoesMat,
+    );
+    toeL.position.set(0, -0.46, -0.16);
+    toeL.rotation.x = -Math.PI / 3;
+    legL.add(toeL);
+
+    this.playerMesh.add(legL);
+    this.legL = legL;
+
+    // Right Leg
+    const legR = new THREE.Group();
+    legR.position.set(0.16, 0.44, 0);
+
+    const thighR = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.11, 0.09, 0.32, 10),
+      dhotiMat,
+    );
+    thighR.position.set(0, -0.16, 0);
+    thighR.castShadow = true;
+    legR.add(thighR);
+
+    const calfR = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.07, 0.26, 10),
+      skinMat,
+    );
+    calfR.position.set(0, -0.36, 0);
+    calfR.castShadow = true;
+    legR.add(calfR);
+
+    // Mojari Footwear R
+    const shoeR = new THREE.Mesh(
+      new THREE.BoxGeometry(0.13, 0.09, 0.24),
+      shoesMat,
+    );
+    shoeR.position.set(0, -0.49, -0.04);
+    shoeR.castShadow = true;
+    legR.add(shoeR);
+
+    // Upturned curled toe tip
+    const toeR = new THREE.Mesh(
+      new THREE.ConeGeometry(0.055, 0.09, 6),
+      shoesMat,
+    );
+    toeR.position.set(0, -0.46, -0.16);
+    toeR.rotation.x = -Math.PI / 3;
+    legR.add(toeR);
+
+    this.playerMesh.add(legR);
+    this.legR = legR;
   }
 
   updatePlayerSkin() {
-    const charInfo = CHARACTERS[this.selectedCharacter];
-    if (this.playerMaterials.kurta)
-      this.playerMaterials.kurta.color.setHex(charInfo.kurtaColor);
-    if (this.playerMaterials.dhoti)
-      this.playerMaterials.dhoti.color.setHex(charInfo.dhotiColor);
-    if (this.playerMaterials.gamchha)
-      this.playerMaterials.gamchha.color.setHex(charInfo.gamchhaColor);
+    this.rebuildPlayerMesh();
   }
 
   // ---------------- MITTI DUST PARTICLES ----------------
@@ -592,6 +1300,140 @@ class MittiRunGame {
     });
   }
 
+  // ---------------- CELEBRATION CONFETTI PARTICLES ----------------
+  initConfetti() {
+    this.confettiParticles = [];
+    const colors = [0xffd700, 0xff5722, 0xe91e63, 0x00e5ff, 0xffeb3b, 0x76ff03];
+    const geo = new THREE.PlaneGeometry(0.12, 0.12);
+    for (let i = 0; i < 40; i++) {
+      const mat = new THREE.MeshBasicMaterial({
+        color: colors[i % colors.length],
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.visible = false;
+      this.scene.add(mesh);
+      this.confettiParticles.push({
+        mesh,
+        life: 0,
+        maxLife: 1.4,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        rotSpeed: 0,
+      });
+    }
+  }
+
+  burstConfetti() {
+    const px = this.playerGroup.position.x;
+    const py = this.playerGroup.position.y + 1.4;
+    const pz = this.playerGroup.position.z - 0.5;
+
+    this.confettiParticles.forEach((p) => {
+      p.mesh.position.set(
+        px + (Math.random() - 0.5) * 1.2,
+        py + (Math.random() - 0.5) * 0.8,
+        pz + (Math.random() - 0.5) * 1.2,
+      );
+      p.mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+      p.mesh.visible = true;
+      p.life = p.maxLife * (0.7 + Math.random() * 0.3);
+      p.vx = (Math.random() - 0.5) * 5.0;
+      p.vy = Math.random() * 4.5 + 2.5;
+      p.vz = (Math.random() - 0.5) * 4.0;
+      p.rotSpeed = (Math.random() - 0.5) * 12.0;
+    });
+  }
+
+  updateConfetti(delta) {
+    this.confettiParticles.forEach((p) => {
+      if (p.life > 0) {
+        p.life -= delta;
+        p.vy -= 9.8 * delta; // Gravity
+        p.mesh.position.x += p.vx * delta;
+        p.mesh.position.y += p.vy * delta;
+        p.mesh.position.z += p.vz * delta;
+        p.mesh.rotation.x += p.rotSpeed * delta;
+        p.mesh.rotation.y += p.rotSpeed * 0.7 * delta;
+        if (p.life <= 0) {
+          p.mesh.visible = false;
+        }
+      }
+    });
+  }
+
+  getLevelInfo(lvl) {
+    if (lvl <= LEVELS.length) {
+      return LEVELS[lvl - 1];
+    }
+    const base = LEVELS[LEVELS.length - 1];
+    return {
+      level: lvl,
+      name: `Grand Bihar Tour Stage ${lvl - 5}`,
+      shortName: `STAGE ${lvl}`,
+      subtitle: "Ultimate Sprint Across Bihar",
+      mapId: "tour",
+      targetDistance: 3350 + (lvl - 6) * 850,
+      coinReward: 250 + (lvl - 6) * 50,
+    };
+  }
+
+  completeCurrentLevel() {
+    const currentInfo = this.getLevelInfo(this.currentLevel);
+    const reward = currentInfo.coinReward;
+
+    // Coins reward
+    this.coinsThisRun += reward;
+    this.totalCoins += reward;
+    this.saveData();
+
+    // Sound fanfare & 3D Confetti burst
+    this.audio.playLevelComplete();
+    this.burstConfetti();
+
+    // Advance Level
+    this.currentLevel++;
+    if (this.currentLevel > this.maxLevelReached) {
+      this.maxLevelReached = this.currentLevel;
+      this.saveData();
+    }
+
+    const nextInfo = this.getLevelInfo(this.currentLevel);
+    this.levelStartDist = this.distance;
+    const span = Math.max(400, nextInfo.targetDistance - currentInfo.targetDistance);
+    this.levelTargetDist = this.distance + span;
+
+    // Dynamic map change on level progression to match destination!
+    if (nextInfo.mapId && nextInfo.mapId !== "tour") {
+      this.currentBiome = nextInfo.mapId;
+    }
+
+    // Trigger Celebratory Banner
+    this.triggerLevelCompleteAnnouncement(currentInfo, nextInfo, reward);
+  }
+
+  triggerLevelCompleteAnnouncement(completedInfo, nextInfo, reward) {
+    const popup = document.getElementById("level-complete-announcement");
+    const title = document.getElementById("level-popup-title");
+    const rewardText = document.getElementById("level-popup-reward");
+    const nextText = document.getElementById("level-popup-next");
+
+    if (popup && title) {
+      title.textContent = `LVL ${completedInfo.level} COMPLETE: ${completedInfo.shortName}`;
+      if (rewardText) rewardText.textContent = `+ ₹ ${reward} BONUS COINS!`;
+      if (nextText) nextText.textContent = `NEXT STOP: ${nextInfo.name.toUpperCase()}`;
+
+      popup.classList.remove("hidden");
+      popup.style.animation = "none";
+      void popup.offsetHeight;
+      popup.style.animation = "";
+      setTimeout(() => {
+        if (popup) popup.classList.add("hidden");
+      }, 3200);
+    }
+  }
+
   // ---------------- TRACK & ENVIRONMENT ----------------
   initInitialTrack() {
     for (let i = 0; i < TOTAL_CHUNKS; i++) {
@@ -600,35 +1442,54 @@ class MittiRunGame {
     }
   }
 
+  getBiomeForZ(z) {
+    if (this.selectedMap && this.selectedMap !== "tour") {
+      return this.selectedMap;
+    }
+    // Tour mode: rotates biomes every 350 meters (~10 chunks)
+    const biomes = ["village", "bazaar", "railway", "highway"];
+    const idx = Math.floor(Math.abs(z) / 350) % biomes.length;
+    return biomes[idx];
+  }
+
   spawnChunk(isSafe = false) {
     this.chunkSpawnCounter++;
-    const isRailway = !isSafe && this.chunkSpawnCounter % 6 === 0;
+    const biome = this.getBiomeForZ(this.nextChunkZ);
+    const mapConfig = MAPS[biome] || MAPS.village;
+    const isRailway =
+      !isSafe &&
+      (biome === "railway" ||
+        (biome === "village" && this.chunkSpawnCounter % 6 === 0));
 
     const chunk = new THREE.Group();
     chunk.position.set(0, 0, this.nextChunkZ);
 
-    // 1. Lush Green Fields (Ground)
+    // 1. Ground Mesh (Color adapts to map)
     const groundGeo = new THREE.BoxGeometry(26, 0.3, CHUNK_LENGTH);
-    const groundMat = new THREE.MeshLambertMaterial({ color: 0x3d6628 });
+    const groundMat = new THREE.MeshLambertMaterial({
+      color: mapConfig.groundColor,
+    });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.position.y = -0.15;
     ground.receiveShadow = true;
     chunk.add(ground);
 
-    // 2. Mitti Mud Road (3 Lanes)
+    // 2. Road Surface Mesh (3 Lanes)
     const roadGeo = new THREE.BoxGeometry(8.2, 0.32, CHUNK_LENGTH);
-    const roadMat = new THREE.MeshLambertMaterial({ color: 0x7a5b43 }); // Dusty Bihar clay road
+    const roadMat = new THREE.MeshLambertMaterial({
+      color: mapConfig.roadColor,
+    });
     const road = new THREE.Mesh(roadGeo, roadMat);
     road.position.y = -0.12;
     road.receiveShadow = true;
     chunk.add(road);
 
-    // Dashed Lane Dividers (White/Ochre road dashes)
+    // 3. Dashed Lane Dividers (White / Ochre / Yellow)
     const dashGeo = new THREE.BoxGeometry(0.12, 0.33, 2.0);
     const dashMat = new THREE.MeshBasicMaterial({
-      color: 0xefd8a1,
+      color: mapConfig.dashColor,
       transparent: true,
-      opacity: 0.45,
+      opacity: biome === "highway" ? 0.9 : 0.5,
     });
     for (let dz = -CHUNK_LENGTH / 2 + 1.5; dz < CHUNK_LENGTH / 2; dz += 4.5) {
       const dashL = new THREE.Mesh(dashGeo, dashMat);
@@ -639,9 +1500,11 @@ class MittiRunGame {
       chunk.add(dashR);
     }
 
-    // Road shoulders (dirt banks)
+    // 4. Road Shoulders / Curbs
     const shoulderGeo = new THREE.BoxGeometry(1.2, 0.33, CHUNK_LENGTH);
-    const shoulderMat = new THREE.MeshLambertMaterial({ color: 0x937053 });
+    const shoulderMat = new THREE.MeshLambertMaterial({
+      color: mapConfig.shoulderColor,
+    });
     const shoulderL = new THREE.Mesh(shoulderGeo, shoulderMat);
     shoulderL.position.set(-4.7, -0.12, 0);
     const shoulderR = new THREE.Mesh(shoulderGeo, shoulderMat);
@@ -649,22 +1512,27 @@ class MittiRunGame {
     chunk.add(shoulderL);
     chunk.add(shoulderR);
 
-    // Roadside Trees (Lush green canopies)
-    this.createRoadsideTrees(chunk);
-
-    // Traditional Bihar Village Hut (thatched roof cottage)
-    if (Math.random() < 0.4) {
-      this.createVillageHut(chunk);
-    }
-
-    // Roadside Milestone Marker
-    if (Math.random() < 0.35) {
-      this.createMilestone(chunk);
-    }
-
-    // Special Railway Crossing Chunk (inspired by the reference photo!)
-    if (isRailway) {
-      this.createRailwayCrossing(chunk);
+    // 5. BIOME-SPECIFIC PROPS
+    if (biome === "village") {
+      this.createRoadsideTrees(chunk);
+      if (Math.random() < 0.45) this.createVillageHut(chunk);
+      if (Math.random() < 0.35) this.createMilestone(chunk);
+      if (isRailway) this.createRailwayCrossing(chunk);
+    } else if (biome === "bazaar") {
+      this.createBazaarStalls(chunk);
+      this.createBazaarGarlands(chunk);
+      this.createMarketLanterns(chunk);
+    } else if (biome === "railway") {
+      this.createStationPlatform(chunk);
+      this.createTrainCarriage(chunk);
+      this.createSignalPole(chunk);
+      if (Math.random() < 0.6) this.createRailwayCrossing(chunk);
+    } else if (biome === "highway") {
+      this.createHighwayLamps(chunk);
+      this.createHighwayGuardrails(chunk);
+      if (Math.random() < 0.35) this.createHighwaySign(chunk);
+      if (Math.random() < 0.4) this.createHighwayDhaba(chunk);
+      if (Math.random() < 0.35) this.createMilestone(chunk);
     }
 
     // Add obstacles and coins if not safe start chunk
@@ -676,6 +1544,345 @@ class MittiRunGame {
     this.chunks.push(chunk);
 
     this.nextChunkZ -= CHUNK_LENGTH;
+  }
+
+  // ---------------- BAZAAR ENVIRONMENT PROPS ----------------
+  createBazaarStalls(chunk) {
+    [-5.6, 5.6].forEach((sideX) => {
+      for (let dz = -CHUNK_LENGTH / 3; dz <= CHUNK_LENGTH / 3; dz += 14) {
+        if (Math.random() < 0.85) {
+          const stall = new THREE.Group();
+
+          // Wooden table/counter
+          const counterGeo = new THREE.BoxGeometry(2.4, 0.9, 3.2);
+          const counterMat = new THREE.MeshLambertMaterial({ color: 0x5d4037 });
+          const counter = new THREE.Mesh(counterGeo, counterMat);
+          counter.position.y = 0.45;
+          stall.add(counter);
+
+          // Stalls awning roof (striped colorful fabric)
+          const awningGeo = new THREE.BoxGeometry(2.8, 0.12, 3.6);
+          const colors = [0xff6f00, 0x0288d1, 0xd81b60, 0x388e3c, 0xfbc02d];
+          const awningColor = colors[Math.floor(Math.random() * colors.length)];
+          const awningMat = new THREE.MeshLambertMaterial({
+            color: awningColor,
+          });
+          const awning = new THREE.Mesh(awningGeo, awningMat);
+          awning.position.y = 2.4;
+          awning.rotation.z = sideX > 0 ? 0.15 : -0.15;
+          stall.add(awning);
+
+          // 4 Corner Wooden Pillars
+          const poleGeo = new THREE.CylinderGeometry(0.06, 0.06, 2.4, 6);
+          const poleMat = new THREE.MeshLambertMaterial({ color: 0x3e2723 });
+          [
+            [-1.1, -1.4],
+            [1.1, -1.4],
+            [-1.1, 1.4],
+            [1.1, 1.4],
+          ].forEach(([px, pz]) => {
+            const pole = new THREE.Mesh(poleGeo, poleMat);
+            pole.position.set(px, 1.2, pz);
+            stall.add(pole);
+          });
+
+          // Crates of fruits/vegetables on counter
+          const crateGeo = new THREE.BoxGeometry(0.7, 0.35, 0.8);
+          const produceColors = [0xff9800, 0x4caf50, 0xffeb3b, 0xe53935];
+          for (let c = -0.6; c <= 0.6; c += 0.6) {
+            const cMat = new THREE.MeshLambertMaterial({
+              color:
+                produceColors[Math.floor(Math.random() * produceColors.length)],
+            });
+            const crate = new THREE.Mesh(crateGeo, cMat);
+            crate.position.set(0, 1.05, c);
+            stall.add(crate);
+          }
+
+          stall.position.set(sideX, 0, dz);
+          chunk.add(stall);
+        }
+      }
+    });
+  }
+
+  createBazaarGarlands(chunk) {
+    for (let dz = -CHUNK_LENGTH / 3; dz <= CHUNK_LENGTH / 3; dz += 16) {
+      const garlandGroup = new THREE.Group();
+      const poleGeo = new THREE.CylinderGeometry(0.08, 0.08, 4.2, 8);
+      const poleMat = new THREE.MeshLambertMaterial({ color: 0x4e342e });
+      const pL = new THREE.Mesh(poleGeo, poleMat);
+      pL.position.set(-4.5, 2.1, 0);
+      const pR = new THREE.Mesh(poleGeo, poleMat);
+      pR.position.set(4.5, 2.1, 0);
+      garlandGroup.add(pL);
+      garlandGroup.add(pR);
+
+      // Hanging Marigold Beads
+      const flowerGeo = new THREE.SphereGeometry(0.14, 6, 6);
+      const flowerMat1 = new THREE.MeshBasicMaterial({ color: 0xffb300 });
+      const flowerMat2 = new THREE.MeshBasicMaterial({ color: 0xff6d00 });
+      for (let x = -4.2; x <= 4.2; x += 0.5) {
+        const drop = (1 - (x * x) / 20) * 0.65;
+        const mat = Math.random() < 0.5 ? flowerMat1 : flowerMat2;
+        const fl = new THREE.Mesh(flowerGeo, mat);
+        fl.position.set(x, 3.8 - drop, 0);
+        garlandGroup.add(fl);
+      }
+
+      garlandGroup.position.set(0, 0, dz);
+      chunk.add(garlandGroup);
+    }
+  }
+
+  createMarketLanterns(chunk) {
+    [-4.6, 4.6].forEach((sideX) => {
+      for (let dz = -CHUNK_LENGTH / 4; dz <= CHUNK_LENGTH / 4; dz += 15) {
+        const lantern = new THREE.Group();
+        const postGeo = new THREE.CylinderGeometry(0.06, 0.08, 2.8, 6);
+        const postMat = new THREE.MeshLambertMaterial({ color: 0x212121 });
+        const post = new THREE.Mesh(postGeo, postMat);
+        post.position.y = 1.4;
+        lantern.add(post);
+
+        const glowGeo = new THREE.BoxGeometry(0.35, 0.45, 0.35);
+        const glowMat = new THREE.MeshBasicMaterial({ color: 0xffecb3 });
+        const glow = new THREE.Mesh(glowGeo, glowMat);
+        glow.position.y = 2.7;
+        lantern.add(glow);
+
+        lantern.position.set(sideX, 0, dz);
+        chunk.add(lantern);
+      }
+    });
+  }
+
+  // ---------------- RAILWAY ENVIRONMENT PROPS ----------------
+  createStationPlatform(chunk) {
+    const platGroup = new THREE.Group();
+    const platGeo = new THREE.BoxGeometry(3.5, 0.65, CHUNK_LENGTH);
+    const platMat = new THREE.MeshLambertMaterial({ color: 0x78909c });
+    const platform = new THREE.Mesh(platGeo, platMat);
+    platform.position.set(5.8, 0.2, 0);
+    platform.receiveShadow = true;
+    platGroup.add(platform);
+
+    const edgeGeo = new THREE.BoxGeometry(0.18, 0.66, CHUNK_LENGTH);
+    const edgeMat = new THREE.MeshBasicMaterial({ color: 0xfdd835 });
+    const edgeLine = new THREE.Mesh(edgeGeo, edgeMat);
+    edgeLine.position.set(4.15, 0.21, 0);
+    platGroup.add(edgeLine);
+
+    // Signboard: "PATNA JN"
+    const signGroup = new THREE.Group();
+    const legGeo = new THREE.CylinderGeometry(0.06, 0.06, 2.2, 6);
+    const legMat = new THREE.MeshLambertMaterial({ color: 0x37474f });
+    const leg1 = new THREE.Mesh(legGeo, legMat);
+    leg1.position.set(-1.0, 1.1, 0);
+    const leg2 = new THREE.Mesh(legGeo, legMat);
+    leg2.position.set(1.0, 1.1, 0);
+    signGroup.add(leg1);
+    signGroup.add(leg2);
+
+    const boardGeo = new THREE.BoxGeometry(2.6, 0.8, 0.08);
+    const boardMat = new THREE.MeshLambertMaterial({ color: 0xfbc02d });
+    const board = new THREE.Mesh(boardGeo, boardMat);
+    board.position.set(0, 2.0, 0);
+    signGroup.add(board);
+
+    const barGeo = new THREE.BoxGeometry(2.4, 0.35, 0.1);
+    const barMat = new THREE.MeshLambertMaterial({ color: 0x0d47a1 });
+    const bar = new THREE.Mesh(barGeo, barMat);
+    bar.position.set(0, 2.0, 0);
+    signGroup.add(bar);
+
+    signGroup.position.set(6.2, 0, 0);
+    platGroup.add(signGroup);
+
+    chunk.add(platGroup);
+  }
+
+  createTrainCarriage(chunk) {
+    const train = new THREE.Group();
+    const bodyGeo = new THREE.BoxGeometry(2.8, 2.8, 22);
+    const bodyMat = new THREE.MeshLambertMaterial({ color: 0x1b5e20 });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.position.y = 2.0;
+    body.castShadow = true;
+    train.add(body);
+
+    const winBandGeo = new THREE.BoxGeometry(2.84, 0.8, 21.6);
+    const winBandMat = new THREE.MeshLambertMaterial({ color: 0xfff9c4 });
+    const winBand = new THREE.Mesh(winBandGeo, winBandMat);
+    winBand.position.y = 2.2;
+    train.add(winBand);
+
+    const roofGeo = new THREE.CylinderGeometry(
+      1.45,
+      1.45,
+      22,
+      12,
+      1,
+      false,
+      0,
+      Math.PI,
+    );
+    const roofMat = new THREE.MeshLambertMaterial({ color: 0x9e9e9e });
+    const roof = new THREE.Mesh(roofGeo, roofMat);
+    roof.rotation.z = Math.PI / 2;
+    roof.rotation.y = Math.PI / 2;
+    roof.position.y = 3.3;
+    train.add(roof);
+
+    const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.2, 10);
+    const wheelMat = new THREE.MeshLambertMaterial({ color: 0x212121 });
+    [-7, -5, 5, 7].forEach((wz) => {
+      const w = new THREE.Mesh(wheelGeo, wheelMat);
+      w.rotation.z = Math.PI / 2;
+      w.position.set(0, 0.4, wz);
+      train.add(w);
+    });
+
+    train.position.set(-6.5, 0, 0);
+    chunk.add(train);
+  }
+
+  createSignalPole(chunk) {
+    const signal = new THREE.Group();
+    const mastGeo = new THREE.CylinderGeometry(0.1, 0.14, 4.8, 8);
+    const mastMat = new THREE.MeshLambertMaterial({ color: 0x37474f });
+    const mast = new THREE.Mesh(mastGeo, mastMat);
+    mast.position.y = 2.4;
+    signal.add(mast);
+
+    const headGeo = new THREE.BoxGeometry(0.4, 1.2, 0.15);
+    const headMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+    const head = new THREE.Mesh(headGeo, headMat);
+    head.position.set(0, 4.4, 0);
+    signal.add(head);
+
+    const lensGeo = new THREE.SphereGeometry(0.12, 8, 8);
+    const greenMat = new THREE.MeshBasicMaterial({ color: 0x00e676 });
+    const green = new THREE.Mesh(lensGeo, greenMat);
+    green.position.set(0, 4.7, 0.1);
+    const redMat = new THREE.MeshBasicMaterial({ color: 0xff1744 });
+    const red = new THREE.Mesh(lensGeo, redMat);
+    red.position.set(0, 4.1, 0.1);
+    signal.add(green);
+    signal.add(red);
+
+    signal.position.set(-4.5, 0, 8);
+    chunk.add(signal);
+  }
+
+  // ---------------- HIGHWAY ENVIRONMENT PROPS ----------------
+  createHighwayLamps(chunk) {
+    [-5.4, 5.4].forEach((sideX) => {
+      const lamp = new THREE.Group();
+      const poleGeo = new THREE.CylinderGeometry(0.08, 0.12, 5.5, 8);
+      const poleMat = new THREE.MeshLambertMaterial({ color: 0x78909c });
+      const pole = new THREE.Mesh(poleGeo, poleMat);
+      pole.position.y = 2.75;
+      lamp.add(pole);
+
+      const armGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.6, 6);
+      const arm = new THREE.Mesh(armGeo, poleMat);
+      arm.position.set(sideX > 0 ? -0.7 : 0.7, 5.4, 0);
+      arm.rotation.z = sideX > 0 ? 1.0 : -1.0;
+      lamp.add(arm);
+
+      const lightGeo = new THREE.BoxGeometry(0.4, 0.1, 0.5);
+      const lightMat = new THREE.MeshBasicMaterial({ color: 0xfff9c4 });
+      const lightHead = new THREE.Mesh(lightGeo, lightMat);
+      lightHead.position.set(sideX > 0 ? -1.3 : 1.3, 5.3, 0);
+      lamp.add(lightHead);
+
+      lamp.position.set(sideX, 0, 0);
+      chunk.add(lamp);
+    });
+  }
+
+  createHighwayGuardrails(chunk) {
+    [-4.5, 4.5].forEach((sideX) => {
+      const railGeo = new THREE.BoxGeometry(0.12, 0.28, CHUNK_LENGTH);
+      const railMat = new THREE.MeshLambertMaterial({ color: 0xb0bec5 });
+      const rail = new THREE.Mesh(railGeo, railMat);
+      rail.position.set(sideX, 0.65, 0);
+      chunk.add(rail);
+
+      const postGeo = new THREE.BoxGeometry(0.12, 0.7, 0.12);
+      const postMat = new THREE.MeshLambertMaterial({ color: 0x607d8b });
+      for (let dz = -CHUNK_LENGTH / 2 + 1; dz < CHUNK_LENGTH / 2; dz += 4) {
+        const post = new THREE.Mesh(postGeo, postMat);
+        post.position.set(sideX, 0.35, dz);
+        chunk.add(post);
+      }
+    });
+  }
+
+  createHighwaySign(chunk) {
+    const gantry = new THREE.Group();
+    const pillarGeo = new THREE.CylinderGeometry(0.12, 0.14, 5.5, 8);
+    const pillarMat = new THREE.MeshLambertMaterial({ color: 0x546e7a });
+    const pL = new THREE.Mesh(pillarGeo, pillarMat);
+    pL.position.set(-4.6, 2.75, 0);
+    const pR = new THREE.Mesh(pillarGeo, pillarMat);
+    pR.position.set(4.6, 2.75, 0);
+    gantry.add(pL);
+    gantry.add(pR);
+
+    const trussGeo = new THREE.BoxGeometry(9.4, 0.2, 0.2);
+    const truss = new THREE.Mesh(trussGeo, pillarMat);
+    truss.position.set(0, 5.4, 0);
+    gantry.add(truss);
+
+    const boardGeo = new THREE.BoxGeometry(7.2, 1.4, 0.08);
+    const boardMat = new THREE.MeshLambertMaterial({ color: 0x1b5e20 });
+    const board = new THREE.Mesh(boardGeo, boardMat);
+    board.position.set(0, 4.4, 0);
+    gantry.add(board);
+
+    const textBarGeo = new THREE.BoxGeometry(6.6, 0.4, 0.1);
+    const textBarMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const textBar = new THREE.Mesh(textBarGeo, textBarMat);
+    textBar.position.set(0, 4.4, 0);
+    gantry.add(textBar);
+
+    gantry.position.set(0, 0, 5);
+    chunk.add(gantry);
+  }
+
+  createHighwayDhaba(chunk) {
+    const dhaba = new THREE.Group();
+    const side = Math.random() < 0.5 ? -1 : 1;
+
+    const shedGeo = new THREE.BoxGeometry(4.2, 2.6, 5.5);
+    const shedMat = new THREE.MeshLambertMaterial({ color: 0x6d4c41 });
+    const shed = new THREE.Mesh(shedGeo, shedMat);
+    shed.position.y = 1.3;
+    dhaba.add(shed);
+
+    const roofGeo = new THREE.BoxGeometry(4.6, 0.14, 5.8);
+    const roofMat = new THREE.MeshLambertMaterial({ color: 0xb0bec5 });
+    const roof = new THREE.Mesh(roofGeo, roofMat);
+    roof.position.y = 2.7;
+    roof.rotation.z = side > 0 ? -0.12 : 0.12;
+    dhaba.add(roof);
+
+    const signGeo = new THREE.BoxGeometry(3.2, 0.7, 0.1);
+    const signMat = new THREE.MeshLambertMaterial({ color: 0xfbc02d });
+    const sign = new THREE.Mesh(signGeo, signMat);
+    sign.position.set(0, 3.2, 0);
+    dhaba.add(sign);
+
+    const cotGeo = new THREE.BoxGeometry(1.6, 0.35, 1.0);
+    const cotMat = new THREE.MeshLambertMaterial({ color: 0x8d6e63 });
+    const cot = new THREE.Mesh(cotGeo, cotMat);
+    cot.position.set(side > 0 ? -2.4 : 2.4, 0.18, 1.2);
+    dhaba.add(cot);
+
+    dhaba.position.set(side * 7.5, 0, -4);
+    chunk.add(dhaba);
   }
 
   createRoadsideTrees(chunk) {
@@ -1280,6 +2487,29 @@ class MittiRunGame {
         this.updateMenuUI();
       });
 
+    const menuMusicBtn = document.getElementById("btn-music-toggle");
+    if (menuMusicBtn) {
+      menuMusicBtn.addEventListener("click", () => {
+        this.audio.playClick();
+        this.audio.toggleMusic();
+        this.saveData();
+        this.updateMenuUI();
+        this.refreshIcons();
+      });
+    }
+
+    const hudMusicBtn = document.getElementById("btn-hud-music");
+    if (hudMusicBtn) {
+      hudMusicBtn.addEventListener("click", () => {
+        this.audio.playClick();
+        this.audio.toggleMusic();
+        this.saveData();
+        this.updateHUD();
+        this.updateMenuUI();
+        this.refreshIcons();
+      });
+    }
+
     document.getElementById("btn-pause").addEventListener("click", () => {
       this.audio.playClick();
       this.pauseGame();
@@ -1312,6 +2542,30 @@ class MittiRunGame {
       this.openShop();
     });
 
+    const btnOverMaps = document.getElementById("btn-over-maps");
+    if (btnOverMaps) {
+      btnOverMaps.addEventListener("click", () => {
+        this.audio.playClick();
+        this.openMaps();
+      });
+    }
+
+    const btnOpenMaps = document.getElementById("btn-open-maps");
+    if (btnOpenMaps) {
+      btnOpenMaps.addEventListener("click", () => {
+        this.audio.playClick();
+        this.openMaps();
+      });
+    }
+
+    const btnCloseMaps = document.getElementById("btn-close-maps");
+    if (btnCloseMaps) {
+      btnCloseMaps.addEventListener("click", () => {
+        this.audio.playClick();
+        this.closeMaps();
+      });
+    }
+
     document.getElementById("btn-over-menu").addEventListener("click", () => {
       this.audio.playClick();
       this.returnToMenu();
@@ -1319,6 +2573,57 @@ class MittiRunGame {
 
     // Shop Character Selection & Unlocking
     this.bindShopButtons();
+    // Map Selection
+    this.bindMapButtons();
+  }
+
+  openMaps() {
+    this.audio.playClick();
+    this.showScreen("maps-screen");
+    this.refreshMapsUI();
+  }
+
+  closeMaps() {
+    this.audio.playClick();
+    this.showScreen("menu-screen");
+    this.updateMenuUI();
+  }
+
+  bindMapButtons() {
+    ["village", "bazaar", "railway", "highway", "tour"].forEach((mapId) => {
+      const btn = document.getElementById(`btn-map-${mapId}`);
+      if (btn) {
+        btn.addEventListener("click", () => {
+          this.audio.playClick();
+          this.selectedMap = mapId;
+          this.saveData();
+          this.refreshMapsUI();
+          this.updateMenuUI();
+        });
+      }
+    });
+  }
+
+  refreshMapsUI() {
+    const badge = document.getElementById("maps-active-badge");
+    const activeInfo = MAPS[this.selectedMap] || MAPS.village;
+    if (badge) badge.textContent = activeInfo.name.toUpperCase();
+
+    ["village", "bazaar", "railway", "highway", "tour"].forEach((mapId) => {
+      const card = document.getElementById(`map-card-${mapId}`);
+      const btn = document.getElementById(`btn-map-${mapId}`);
+      if (!card || !btn) return;
+      if (this.selectedMap === mapId) {
+        card.classList.add("active");
+        btn.textContent = "ACTIVE";
+        btn.className = "btn btn-sm btn-select active";
+      } else {
+        card.classList.remove("active");
+        btn.textContent = "CHOOSE";
+        btn.className = "btn btn-sm btn-secondary";
+      }
+    });
+    this.refreshIcons();
   }
 
   bindShopButtons() {
@@ -1397,9 +2702,28 @@ class MittiRunGame {
     this.shieldActive = false;
     this.lastMilestoneLevel = 0;
     this.milestoneSurgeTimer = 0.0;
+    this.runTime = 0.0;
+    this.speedTier = 1;
+    this.lastSpeedTier = 1;
+    this.displaySpeed = BASE_SPEED * 3.6;
+
+    // Destination Level Reset
+    this.currentLevel = 1;
+    this.levelStartDist = 0;
+    const firstInfo = this.getLevelInfo(1);
+    this.levelTargetDist = firstInfo.targetDistance;
+    if (this.selectedMap !== "tour") {
+      this.currentBiome = firstInfo.mapId || "village";
+    }
 
     const surgePopup = document.getElementById("surge-announcement");
     if (surgePopup) surgePopup.classList.add("hidden");
+
+    const pacePopup = document.getElementById("pace-announcement");
+    if (pacePopup) pacePopup.classList.add("hidden");
+
+    const lvlPopup = document.getElementById("level-complete-announcement");
+    if (lvlPopup) lvlPopup.classList.add("hidden");
 
     // Reset player position
     this.playerGroup.position.set(0, 0, 0);
@@ -1414,6 +2738,9 @@ class MittiRunGame {
     this.chunkSpawnCounter = 0;
 
     this.initInitialTrack();
+
+    // Start background instrumental song
+    this.audio.startBGM();
 
     // UI Updates
     this.showScreen("hud");
@@ -1453,6 +2780,7 @@ class MittiRunGame {
   pauseGame() {
     if (this.state === "PLAYING") {
       this.state = "PAUSED";
+      this.audio.stopBGM();
       document.getElementById("pause-screen").classList.remove("hidden");
       document.getElementById("pause-screen").classList.add("active");
     }
@@ -1461,6 +2789,7 @@ class MittiRunGame {
   resumeGame() {
     if (this.state === "PAUSED") {
       this.state = "PLAYING";
+      this.audio.startBGM();
       document.getElementById("pause-screen").classList.add("hidden");
       document.getElementById("pause-screen").classList.remove("active");
     }
@@ -1468,12 +2797,16 @@ class MittiRunGame {
 
   gameOver() {
     this.state = "GAMEOVER";
+    this.audio.stopBGM();
     this.audio.playCrash();
 
     // Update persistent stats
     const isNewRecord = this.score > this.highScore;
     if (isNewRecord) this.highScore = this.score;
     this.totalCoins += this.coinsThisRun;
+    if (this.currentLevel > this.maxLevelReached) {
+      this.maxLevelReached = this.currentLevel;
+    }
     this.saveData();
 
     // Game over UI
@@ -1484,6 +2817,9 @@ class MittiRunGame {
       `+ ₹ ${this.coinsThisRun}`;
     document.getElementById("final-best").textContent = this.highScore;
 
+    const finalLevel = document.getElementById("final-level");
+    if (finalLevel) finalLevel.textContent = `LVL ${this.currentLevel}`;
+
     const newRecordTag = document.getElementById("new-high-badge");
     if (isNewRecord && this.score > 0) newRecordTag.classList.remove("hidden");
     else newRecordTag.classList.add("hidden");
@@ -1493,6 +2829,7 @@ class MittiRunGame {
 
   returnToMenu() {
     this.state = "MENU";
+    this.audio.stopBGM();
     this.showScreen("menu-screen");
     this.updateMenuUI();
   }
@@ -1559,6 +2896,62 @@ class MittiRunGame {
         milestoneBuff.classList.add("hidden");
       }
     }
+
+    // Active Map Indicator
+    const mapBadge = document.getElementById("hud-map-name");
+    if (mapBadge) {
+      const activeInfo = MAPS[this.currentBiome] || MAPS.village;
+      mapBadge.textContent = activeInfo.shortName;
+    }
+
+    // Real-Time Speedometer (KM/H)
+    const speedValue = document.getElementById("hud-speed-value");
+    if (speedValue) {
+      const kmh = Math.round(this.displaySpeed || BASE_SPEED * 3.6);
+      speedValue.textContent = `${kmh} KM/H`;
+    }
+
+    // Level & Destination Travel Progress Bar
+    const lvlBadge = document.getElementById("hud-level-value");
+    if (lvlBadge) lvlBadge.textContent = `LVL ${this.currentLevel}`;
+
+    const travelBadge = document.getElementById("travel-level-badge");
+    if (travelBadge) travelBadge.textContent = `LVL ${this.currentLevel}`;
+
+    const nextInfo = this.getLevelInfo(this.currentLevel);
+    const destName = document.getElementById("travel-dest-name");
+    if (destName) {
+      destName.textContent = `DESTINATION: ${nextInfo.shortName}`;
+    }
+
+    const currentSpan = Math.max(1, this.levelTargetDist - this.levelStartDist);
+    const distInLevel = Math.max(0, this.distance - this.levelStartDist);
+    const pct = Math.min(
+      100,
+      Math.max(0, Math.floor((distInLevel / currentSpan) * 100)),
+    );
+
+    const pctVal = document.getElementById("travel-pct-val");
+    if (pctVal) pctVal.textContent = `${pct}%`;
+
+    const progFill = document.getElementById("travel-progress-fill");
+    if (progFill) progFill.style.width = `${pct}%`;
+
+    const runnerPin = document.getElementById("travel-runner-pin");
+    if (runnerPin) runnerPin.style.left = `${pct}%`;
+
+    // Music HUD button state
+    const hudMusicBtn = document.getElementById("btn-hud-music");
+    const hudMusicIcon = document.getElementById("hud-music-icon");
+    if (hudMusicBtn && hudMusicIcon) {
+      if (this.audio.musicEnabled) {
+        hudMusicBtn.classList.remove("muted");
+        hudMusicIcon.setAttribute("data-lucide", "music");
+      } else {
+        hudMusicBtn.classList.add("muted");
+        hudMusicIcon.setAttribute("data-lucide", "music-2");
+      }
+    }
   }
 
   triggerSurgeAnnouncement(score) {
@@ -1577,12 +2970,42 @@ class MittiRunGame {
     }
   }
 
+  triggerPaceAnnouncement(tier, kmh) {
+    const pacePopup = document.getElementById("pace-announcement");
+    const tierText = document.getElementById("pace-tier-text");
+    const kmhText = document.getElementById("pace-kmh-text");
+    if (pacePopup && tierText) {
+      tierText.textContent = `SPEED TIER ${tier}`;
+      if (kmhText) {
+        kmhText.textContent = `${kmh} KM/H • RUNNING FASTER!`;
+      }
+      pacePopup.classList.remove("hidden");
+      // Re-trigger CSS animation
+      pacePopup.style.animation = "none";
+      void pacePopup.offsetHeight;
+      pacePopup.style.animation = "";
+      setTimeout(() => {
+        if (pacePopup) pacePopup.classList.add("hidden");
+      }, 2800);
+    }
+  }
+
   updateMenuUI() {
     document.getElementById("menu-best-score").textContent = this.highScore;
     document.getElementById("menu-total-coins").textContent =
       `₹ ${this.totalCoins}`;
     document.getElementById("menu-active-char").textContent =
       CHARACTERS[this.selectedCharacter].name;
+
+    const maxLvlText = document.getElementById("menu-max-level");
+    if (maxLvlText) maxLvlText.textContent = `LVL ${this.maxLevelReached}`;
+
+    const mapMenuText = document.getElementById("menu-active-map");
+    if (mapMenuText) {
+      const activeMap = MAPS[this.selectedMap] || MAPS.village;
+      mapMenuText.textContent = activeMap.name.split(" ")[0];
+    }
+
     const soundText = document.getElementById("sound-btn-text");
     const soundIcon = document.getElementById("menu-sound-icon");
     if (soundText)
@@ -1592,6 +3015,17 @@ class MittiRunGame {
         "data-lucide",
         this.audio.enabled ? "volume-2" : "volume-x",
       );
+
+    const musicText = document.getElementById("music-btn-text");
+    const musicIcon = document.getElementById("menu-music-icon");
+    if (musicText)
+      musicText.textContent = `BGM: ${this.audio.musicEnabled ? "ON" : "OFF"}`;
+    if (musicIcon)
+      musicIcon.setAttribute(
+        "data-lucide",
+        this.audio.musicEnabled ? "music" : "music-2",
+      );
+
     this.refreshIcons();
   }
 
@@ -1636,6 +3070,7 @@ class MittiRunGame {
       this.updateTrackAndChunks(delta);
       this.updateCollectibles(delta);
       this.updateDust(delta);
+      this.updateConfetti(delta);
       this.updateHUD();
     }
 
@@ -1659,11 +3094,48 @@ class MittiRunGame {
       }
     }
 
+    // Dynamic Sky & Fog transition matching active biome
+    if (this.scene && this.scene.fog && this.currentBiome) {
+      const activeMap = MAPS[this.currentBiome] || MAPS.village;
+      this.targetSkyColor.setHex(activeMap.skyColor);
+      this.targetFogColor.setHex(activeMap.fogColor);
+
+      this.scene.background.lerp(this.targetSkyColor, delta * 2.0);
+      this.scene.fog.color.lerp(this.targetFogColor, delta * 2.0);
+    }
+
     this.renderer.render(this.scene, this.camera);
   }
 
   updatePhysics(delta) {
-    // 1. Milestone Surge Timer Countdown
+    // 0. Update active biome based on player Z position
+    this.currentBiome = this.getBiomeForZ(this.playerGroup.position.z);
+
+    // Track active survival running time
+    this.runTime += delta;
+
+    // Check Destination Travel Progression (Level completion after travel target)
+    if (this.distance >= this.levelTargetDist) {
+      this.completeCurrentLevel();
+    }
+
+    // Periodic Speed Tier Escalation:
+    // Every 15 seconds, speed increases to next Tier (+1.1 m/s base speed boost per tier)
+    const newTier = Math.floor(this.runTime / 15.0) + 1;
+    if (newTier > this.speedTier) {
+      this.speedTier = newTier;
+      this.audio.playPaceUp();
+      const currentKmh = Math.round(this.displaySpeed || BASE_SPEED * 3.6);
+      this.triggerPaceAnnouncement(this.speedTier, currentKmh);
+    }
+
+    // Dynamic BGM Instrumental Tempo (accelerates with speed & level)
+    const targetTempo =
+      118 +
+      Math.min(32, (this.currentLevel - 1) * 4 + (this.speedTier - 1) * 2);
+    this.audio.setBGMTempo(targetTempo);
+
+    // 1. Milestone Surge Timer Countdown (from 5,000 score milestones)
     if (this.milestoneSurgeTimer > 0) {
       this.milestoneSurgeTimer -= delta;
       if (this.milestoneSurgeTimer < 0) this.milestoneSurgeTimer = 0;
@@ -1679,12 +3151,18 @@ class MittiRunGame {
     }
 
     const boostMult = this.boostTimer > 0 ? 1.6 : 1.0;
+    // Level Speed Bonus (+1.5 m/s per level) + Time Tier Bonus
+    const levelSpeedBonus = (this.currentLevel - 1) * 1.5;
+    const tierBonus = (this.speedTier - 1) * 1.1;
+    const basePace = Math.min(
+      BASE_SPEED + levelSpeedBonus + tierBonus + SPEED_INCREMENT * this.runTime,
+      MAX_SPEED + (this.currentLevel - 1) * 1.2,
+    );
+    this.currentSpeed = basePace;
+
     const speedMult = milestoneMult * boostMult;
     const effSpeed = this.currentSpeed * speedMult;
-    this.currentSpeed = Math.min(
-      this.currentSpeed + SPEED_INCREMENT * delta,
-      MAX_SPEED,
-    );
+    this.displaySpeed = effSpeed * 3.6; // in km/h
 
     const forwardMovement = effSpeed * delta;
     this.playerGroup.position.z -= forwardMovement;
@@ -1731,26 +3209,65 @@ class MittiRunGame {
 
     this.playerGroup.position.y = this.playerY;
 
-    // 5. Visual Animations
+    // 5. Visual Animations (Realistic Anatomical Running Gait, Dual-Arm Swing & Wind Flutter)
     if (this.playerMesh) {
       if (this.isSliding) {
-        this.playerMesh.scale.set(1.1, 0.42, 1.3);
-        this.playerMesh.position.y = 0.2;
+        this.playerMesh.scale.set(1.05, 0.44, 1.25);
+        this.playerMesh.position.y = 0.18;
+        if (this.armL && this.armR) {
+          this.armL.rotation.x = -1.35;
+          this.armR.rotation.x = -1.35;
+          this.armL.rotation.z = 0.2;
+          this.armR.rotation.z = -0.2;
+        }
+        if (this.legL && this.legR) {
+          this.legL.rotation.x = 1.1;
+          this.legR.rotation.x = 1.1;
+        }
+        if (this.gamchhaTail) {
+          this.gamchhaTail.rotation.x = 0.75;
+        }
       } else if (this.isJumping) {
-        this.playerMesh.scale.set(1.0, 1.1, 0.9);
+        this.playerMesh.scale.set(0.98, 1.08, 0.95);
         this.playerMesh.position.y = 0.0;
+        if (this.armL && this.armR) {
+          this.armL.rotation.x = -0.85;
+          this.armR.rotation.x = -0.85;
+          this.armL.rotation.z = 0.35;
+          this.armR.rotation.z = -0.35;
+        }
+        if (this.legL && this.legR) {
+          this.legL.rotation.x = -0.45;
+          this.legR.rotation.x = 0.55;
+        }
+        if (this.gamchhaTail) {
+          this.gamchhaTail.rotation.x = 0.65;
+        }
       } else {
-        // Running Bob & Step Animation
-        const runTime = this.distance * 0.4;
-        const bob = Math.abs(Math.sin(runTime)) * 0.12;
+        // Dynamic Running Gait
+        const runCycle = this.distance * 0.45;
+        const bob = Math.abs(Math.sin(runCycle)) * 0.12;
         this.playerMesh.scale.set(1.0, 1.0, 1.0);
         this.playerMesh.position.y = bob;
-        this.playerMesh.rotation.z = Math.sin(runTime * 0.5) * 0.08;
+        this.playerMesh.rotation.z = Math.sin(runCycle * 0.5) * 0.06;
 
-        // Limbs swing
+        // Limbs & Counter-swing
+        const legSwing = Math.sin(runCycle) * 0.8;
         if (this.legL && this.legR) {
-          this.legL.rotation.x = Math.sin(runTime) * 0.8;
-          this.legR.rotation.x = -Math.sin(runTime) * 0.8;
+          this.legL.rotation.x = legSwing;
+          this.legR.rotation.x = -legSwing;
+        }
+        if (this.armL && this.armR) {
+          this.armL.rotation.x = -legSwing * 0.85;
+          this.armR.rotation.x = legSwing * 0.85;
+          this.armL.rotation.z = 0.12 + Math.cos(runCycle) * 0.04;
+          this.armR.rotation.z = -0.12 - Math.cos(runCycle) * 0.04;
+        }
+
+        // Gamchha wind fluttering in the breeze
+        if (this.gamchhaTail) {
+          this.gamchhaTail.rotation.x = 0.32 + Math.sin(runCycle * 2.2) * 0.28;
+          this.gamchhaTail.rotation.z = Math.cos(runCycle * 1.5) * 0.1;
         }
 
         // Spawn dust while running on dirt

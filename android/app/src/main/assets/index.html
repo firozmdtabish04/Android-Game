@@ -38,9 +38,52 @@
             >
             <span id="hud-coins" class="hud-value">₹ 0</span>
           </div>
+          <div class="hud-stat map-box">
+            <span class="hud-label"
+              ><i data-lucide="map-pin" class="icon-inline"></i> MAP</span
+            >
+            <span id="hud-map-name" class="hud-value">GAON</span>
+          </div>
+          <div class="hud-stat speed-box">
+            <span class="hud-label"
+              ><i data-lucide="gauge" class="icon-inline"></i> SPEED</span
+            >
+            <span id="hud-speed-value" class="hud-value">58 KM/H</span>
+          </div>
+          <div class="hud-stat level-box">
+            <span class="hud-label"
+              ><i data-lucide="flag" class="icon-inline"></i> LEVEL</span
+            >
+            <span id="hud-level-value" class="hud-value">LVL 1</span>
+          </div>
+          <button id="btn-hud-music" class="btn-icon" aria-label="Music Toggle">
+            <i data-lucide="music" id="hud-music-icon"></i>
+          </button>
           <button id="btn-pause" class="btn-icon" aria-label="Pause">
             <i data-lucide="pause"></i>
           </button>
+        </div>
+
+        <!-- Destination Travel Progress Bar -->
+        <div id="hud-travel-bar">
+          <div class="travel-meta">
+            <span class="travel-badge" id="travel-level-badge"
+              ><i data-lucide="map-pin" class="icon-xxs"></i> LVL 1</span
+            >
+            <span class="travel-dest" id="travel-dest-name"
+              >DESTINATION: HAAT BAZAAR</span
+            >
+            <span class="travel-pct" id="travel-pct-val">0%</span>
+          </div>
+          <div class="travel-progress-track">
+            <div id="travel-progress-fill" class="travel-progress-fill"></div>
+            <div id="travel-runner-pin" class="travel-runner-pin">
+              <i data-lucide="footprints" class="icon-xxs"></i>
+            </div>
+            <div class="travel-flag-goal">
+              <i data-lucide="flag" class="icon-xxs"></i>
+            </div>
+          </div>
         </div>
 
         <!-- Power-up Active Indicators -->
@@ -72,6 +115,22 @@
           <div class="surge-tag">⚡ SPEED SURGE 1.5x ⚡</div>
           <div id="surge-milestone-text" class="surge-score">5,000 PTS!</div>
           <div class="surge-sub">10s SURGE &bull; THEN 1.25x SPEED</div>
+        </div>
+
+        <!-- Periodic Pace Level Up Banner -->
+        <div id="pace-announcement" class="pace-popup hidden">
+          <div class="pace-tag">⚡ PACE ACCELERATION ⚡</div>
+          <div id="pace-tier-text" class="pace-tier">SPEED TIER 2</div>
+          <div id="pace-kmh-text" class="pace-sub">65 KM/H &bull; RUNNING FASTER!</div>
+        </div>
+
+        <!-- Destination Travel Complete Popup Banner -->
+        <div id="level-complete-announcement" class="level-popup hidden">
+          <div class="level-popup-trophy"><i data-lucide="award"></i></div>
+          <div class="level-popup-tag">🏆 DESTINATION REACHED! 🏆</div>
+          <div id="level-popup-title" class="level-popup-title">LEVEL 1 COMPLETE: GAON</div>
+          <div id="level-popup-reward" class="level-popup-reward">+ ₹ 50 BONUS COINS!</div>
+          <div id="level-popup-next" class="level-popup-next">NEXT STOP: HAAT BAZAAR MANDI</div>
         </div>
 
         <!-- Mobile Touch Hint (Briefly shown on start) -->
@@ -115,6 +174,18 @@
               >
               <span id="menu-active-char" class="stat-num">Tabish</span>
             </div>
+            <div class="preview-stat">
+              <span class="stat-name"
+                ><i data-lucide="map-pin" class="icon-xs"></i> MAP</span
+              >
+              <span id="menu-active-map" class="stat-num">Village</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-name"
+                ><i data-lucide="flag" class="icon-xs"></i> LEVEL</span
+              >
+              <span id="menu-max-level" class="stat-num">LVL 1</span>
+            </div>
           </div>
 
           <div class="menu-buttons">
@@ -125,6 +196,9 @@
               <button id="btn-open-shop" class="btn btn-secondary">
                 <i data-lucide="shopping-bag" class="btn-icon-mr"></i> SHOP
               </button>
+              <button id="btn-open-maps" class="btn btn-secondary">
+                <i data-lucide="map" class="btn-icon-mr"></i> MAPS
+              </button>
               <button id="btn-sound-toggle" class="btn btn-secondary">
                 <i
                   data-lucide="volume-2"
@@ -132,6 +206,14 @@
                   class="btn-icon-mr"
                 ></i>
                 <span id="sound-btn-text">SOUND: ON</span>
+              </button>
+              <button id="btn-music-toggle" class="btn btn-secondary">
+                <i
+                  data-lucide="music"
+                  id="menu-music-icon"
+                  class="btn-icon-mr"
+                ></i>
+                <span id="music-btn-text">BGM: ON</span>
               </button>
             </div>
             <a
@@ -240,6 +322,95 @@
         </div>
       </div>
 
+      <!-- Maps Selection Screen -->
+      <div id="maps-screen" class="screen hidden">
+        <div class="shop-card">
+          <div class="shop-header">
+            <h2>
+              <i data-lucide="map" class="icon-inline"></i> SELECT MAP
+            </h2>
+            <div class="shop-coins">
+              <span id="maps-active-badge">BIHAR VILLAGE</span>
+            </div>
+          </div>
+
+          <div class="maps-grid">
+            <!-- Village -->
+            <div class="map-card active" id="map-card-village">
+              <div class="map-icon-wrap map-village-bg">
+                <i data-lucide="trees"></i>
+              </div>
+              <div class="map-details">
+                <h3>Bihar Village</h3>
+                <p>Mitti tracks, mustard fields &amp; thatched cottages</p>
+                <span class="map-tag village">GAON &bull; DEFAULT</span>
+              </div>
+              <button class="btn btn-sm btn-select active" id="btn-map-village">ACTIVE</button>
+            </div>
+
+            <!-- Bazaar -->
+            <div class="map-card" id="map-card-bazaar">
+              <div class="map-icon-wrap map-bazaar-bg">
+                <i data-lucide="shopping-bag"></i>
+              </div>
+              <div class="map-details">
+                <h3>Haat Bazaar</h3>
+                <p>Cobblestone lanes, colorful stalls &amp; marigolds</p>
+                <span class="map-tag bazaar">DESI MARKET</span>
+              </div>
+              <button class="btn btn-sm btn-secondary" id="btn-map-bazaar">CHOOSE</button>
+            </div>
+
+            <!-- Railway -->
+            <div class="map-card" id="map-card-railway">
+              <div class="map-icon-wrap map-railway-bg">
+                <i data-lucide="train"></i>
+              </div>
+              <div class="map-details">
+                <h3>Railway Junction</h3>
+                <p>Parallel tracks, signal poles &amp; green passenger coaches</p>
+                <span class="map-tag railway">PATNA JUNCTION</span>
+              </div>
+              <button class="btn btn-sm btn-secondary" id="btn-map-railway">CHOOSE</button>
+            </div>
+
+            <!-- Highway -->
+            <div class="map-card" id="map-card-highway">
+              <div class="map-icon-wrap map-highway-bg">
+                <i data-lucide="navigation"></i>
+              </div>
+              <div class="map-details">
+                <h3>NH-31 Highway</h3>
+                <p>Smooth dark tarmac, yellow lines, streetlights &amp; dhabas</p>
+                <span class="map-tag highway">EXPRESSWAY</span>
+              </div>
+              <button class="btn btn-sm btn-secondary" id="btn-map-highway">CHOOSE</button>
+            </div>
+
+            <!-- Tour Mode -->
+            <div class="map-card" id="map-card-tour">
+              <div class="map-icon-wrap map-tour-bg">
+                <i data-lucide="compass"></i>
+              </div>
+              <div class="map-details">
+                <h3>Grand Bihar Tour</h3>
+                <p>Dynamic biomes — seamlessly changes maps as you run!</p>
+                <span class="map-tag tour">ALL MAPS ROTATION</span>
+              </div>
+              <button class="btn btn-sm btn-secondary" id="btn-map-tour">CHOOSE</button>
+            </div>
+          </div>
+
+          <button id="btn-close-maps" class="btn btn-secondary btn-full">
+            <i data-lucide="arrow-left" class="btn-icon-mr"></i> BACK TO MENU
+          </button>
+
+          <div class="screen-footer-credit">
+            Designed &amp; Developed by <strong>Tabish Firoz</strong>
+          </div>
+        </div>
+      </div>
+
       <!-- Pause Screen -->
       <div id="pause-screen" class="screen hidden">
         <div class="pause-card">
@@ -302,6 +473,12 @@
               >
               <span id="final-best" class="final-value">0</span>
             </div>
+            <div class="final-stat-box">
+              <span class="stat-caption"
+                ><i data-lucide="flag" class="icon-xxs"></i> LEVEL</span
+              >
+              <span id="final-level" class="final-value">LVL 1</span>
+            </div>
           </div>
 
           <div class="menu-buttons">
@@ -311,6 +488,9 @@
             <div class="button-row">
               <button id="btn-over-shop" class="btn btn-secondary">
                 <i data-lucide="shopping-bag" class="btn-icon-mr"></i> SHOP
+              </button>
+              <button id="btn-over-maps" class="btn btn-secondary">
+                <i data-lucide="map" class="btn-icon-mr"></i> MAPS
               </button>
               <button id="btn-over-menu" class="btn btn-secondary">
                 <i data-lucide="home" class="btn-icon-mr"></i> MENU
