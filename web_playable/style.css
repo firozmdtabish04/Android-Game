@@ -89,15 +89,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(3px, 1.2vw, 8px);
+  gap: clamp(3px, 1vw, 8px);
   width: 100%;
-  max-width: 580px;
+  max-width: min(96vw, 860px);
   margin: 0 auto;
   pointer-events: auto;
 }
 
 .hud-stat {
-  background: rgba(22, 12, 8, 0.82);
+  background: rgba(22, 12, 8, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 180, 50, 0.35);
@@ -109,11 +109,12 @@ body {
   justify-content: center;
   min-width: 0;
   flex: 1 1 0;
+  overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .hud-label {
-  font-size: clamp(7.5px, 1.8vw, 10px);
+  font-size: clamp(7px, 1.4vw, 9.5px);
   font-weight: 800;
   letter-spacing: 0.5px;
   color: #ffb74d;
@@ -121,15 +122,22 @@ body {
   display: flex;
   align-items: center;
   gap: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .hud-value {
-  font-size: clamp(12px, 3.2vw, 17px);
+  font-size: clamp(10.5px, 2.2vw, 15px);
   font-weight: 900;
   color: #fff;
   white-space: nowrap;
   line-height: 1.1;
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-align: center;
 }
 
 .coins-box .hud-value {
@@ -1436,6 +1444,26 @@ svg.lucide,
   }
 }
 
+/* Mobile Portrait Phones (<= 580px wide) */
+@media (max-width: 580px) {
+  .hud-stat.map-box,
+  .hud-stat.level-box {
+    display: none;
+  }
+  .hud-top {
+    gap: 4px;
+  }
+  .hud-stat {
+    padding: 4px 5px;
+  }
+  .hud-label {
+    font-size: 8px;
+  }
+  .hud-value {
+    font-size: 13px;
+  }
+}
+
 /* Large Displays, Tablets, iPads & Desktops (>= 768px wide) */
 @media (min-width: 768px) {
   .menu-card,
@@ -1447,23 +1475,23 @@ svg.lucide,
     border-radius: 28px;
   }
   .hud-top {
-    max-width: 680px;
-    gap: 12px;
+    max-width: 860px;
+    gap: 10px;
   }
   .hud-stat {
-    padding: 8px 14px;
+    padding: 8px 12px;
     border-radius: 14px;
   }
   .hud-label {
-    font-size: 11px;
+    font-size: 10px;
   }
   .hud-value {
-    font-size: 18px;
+    font-size: 15px;
   }
   .btn-icon {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
   }
   #hud-travel-bar {
     max-width: 600px;
